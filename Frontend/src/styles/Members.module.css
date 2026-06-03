@@ -1,0 +1,296 @@
+.memberContainer{
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    font-family: "Roboto", sans-serif;
+}
+.mainContainer {
+  background-color: #f5f6fa;
+  min-height: 100vh;
+  padding: 7px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Page Header ── */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pageTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+/* Invite Button */
+.inviteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  background: #e02020;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  font-family: inherit;
+}
+.inviteBtn:hover 
+ { background: #c01a1a; }
+.inviteBtn:active 
+{ transform: scale(0.97); }
+.inviteBtn svg  
+  { width: 16px; height: 16px; }
+
+/* ── Tab Bar ── */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e5ef;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.tab:hover  
+ { border-color: #e02020; color: #e02020; }
+.tabActive   { background: #e02020; border-color: #e02020; color: #fff; }
+.tabActive:hover   {  color: #fff; }
+
+/* ── Members Grid ── */
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* ── Member Card ── */
+.memberCard {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 18px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.20s ease both;
+}
+.memberCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Stagger animation */
+.memberCard:nth-child(1) { animation-delay: 0.05s; }
+.memberCard:nth-child(2) { animation-delay: 0.10s; }
+.memberCard:nth-child(3) { animation-delay: 0.15s; }
+.memberCard:nth-child(4) { animation-delay: 0.20s; }
+.memberCard:nth-child(5) { animation-delay: 0.25s; }
+.memberCard:nth-child(6) { animation-delay: 0.30s; }
+.memberCard:nth-child(7) { animation-delay: 0.35s; }
+.memberCard:nth-child(8) { animation-delay: 0.40s; }
+
+/* ── Avatar ── */
+.avatarWrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.avatarFallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+
+/* Online/Offline dot */
+.onlineDot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.online  { background: #22c55e; }
+.offline { background: #d1d5db; }
+
+/* ── Name ── */
+.memberName {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+}
+
+/* ── Single Role Badge — everyone is Volunteer ── */
+.roleBadge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: #f0fdf4;  /* soft green — community feel */
+  color: #16a34a;
+}
+
+/* ── Location ── */
+.memberLocation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 14px;
+}
+.memberLocation svg { width: 12px; height: 12px; }
+
+/* ── Stats Row ── */
+.statsRow {
+  display: flex;
+  width: 100%;
+  border: 1.5px solid #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.statItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-right: 1.5px solid #f0f0f0;
+}
+.statItem:last-child { border-right: none; }
+
+.statNum {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
+.statLabel {
+  font-size: 10.5px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ── Action Buttons ── */
+.actionRow {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.actionBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.actionBtn svg { width: 13px; height: 13px; }
+
+.btnMessage {
+  background: #e02020;
+  color: #fff;
+  border-color: #e02020;
+}
+.btnMessage:hover { background: #c01a1a; }
+
+.btnProfile {
+  background: #fff;
+  color: #555;
+  border-color: #e2e5ef;
+}
+.btnProfile:hover { border-color: #e02020; color: #e02020; }
+
+/* ── Results Count ── */
+.resultsCount {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 14px;
+}
+.resultsCount span { font-weight: 700; color: #333; }
+
+/* ── Animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.loadingContainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #e02020;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

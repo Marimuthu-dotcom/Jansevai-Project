@@ -1,0 +1,443 @@
+.mainDashboard,.complaintContainer,.categoriesContainer{
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    font-family: "Roboto", sans-serif;
+    background-color: #f5f6fa;
+    border-radius: 15px;
+}
+.dashboardHeader{
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0px 10px 10px;
+  opacity: 0;
+  animation: fadeIn 0.20s ease forwards;
+  opacity: 0;
+  animation-delay: 0.10s;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.card,
+.cardContainer,
+.dashboardGraph,
+.complaintsReportsBox {
+  opacity: 0;
+  animation: fadeUp 0.35s ease forwards;
+}
+.cardContainer {
+  animation-delay: 0.08s;
+}
+
+.dashboardGraph {
+  animation-delay: 0.20s;
+}
+.complaintsReportsBox {
+  animation-delay: 0.32s;
+}
+.searchForm{
+  display: flex;
+  gap: 10px;
+}
+.searchInput{
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-size: 15px;
+    background-color: rgba(216, 213, 213, 0.568);
+    font-family: "Roboto", sans-serif;
+    outline: none;
+    opacity: 0.90;
+    width:500px;
+    transition: all 0.3s ease;
+}
+.searchInput:focus{
+    background-color: rgba(198, 197, 197, 0.554);
+    opacity: 1;
+}
+.searchBtn{
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #b30404, #ff0000);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 15px;
+  font-family: "Roboto", sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.searchBtn:hover {
+  transform: translateY(-3px) scale(1.01);
+}
+.profileDiv{
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  padding: 0px 10px;
+  cursor: pointer;
+}
+.notificationDiv {
+  position: relative;
+  width: 37px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.notificationDiv:hover {
+  background: #dad9d9a7;
+  transform: translateY(-2px);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -6px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: red;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileContainer{
+    display: flex;
+    gap:15px;
+    align-items: center;
+    position: relative;
+  cursor: pointer;
+}
+
+.dropdownBox {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 180px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  padding: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dropdownEmail {
+  font-size: 13px;
+  color: gray;
+  word-break: break-all;
+}
+.logoutBtn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: darkred;
+}
+.profiles{
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff4d4d, #ff0000);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: "Roboto", sans-serif;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+.profiles:hover {
+  transform: scale(1.08);
+}
+.profileName{
+  font-size: 16px;
+  font-weight: 500;
+  font-family: "Roboto", sans-serif;
+}
+.mainDiv{
+  padding: 0px 0px 10px 10px;
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.20s ease forwards;
+  opacity: 0;
+  animation-delay: 0.18s;
+}
+.welcomeSection h1 {
+  font-size: 28px;
+  color: #222;
+  font-weight:700 ;
+  margin-bottom: 5px;
+  font-family: "Roboto", sans-serif;
+}
+
+.welcomeSection p {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: #aeabab;
+  margin-bottom: 25px;
+  font-family: "Roboto", sans-serif;
+}
+
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.card {
+  padding: 13px 10px 13px 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  transition: 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  background-color: white;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 8px rgba(69, 69, 69, 0.282);
+}
+.process{
+    font-size: 14px;
+    color: rgb(149, 147, 147);
+    font-family: "Roboto", sans-serif;
+    font-weight: 600;
+}
+.dashboardGraph{
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 5px 0px;
+    animation: slideInFromLeft 0.35s ease forwards;
+}
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.complaintsDashboard1,.complaintsDashboard2{
+    flex: 1;
+    border-radius: 10px;
+    padding:3px 7px;
+    animation: slideInFromLeft 0.35s ease forwards;
+}
+.complaintsDashboard1{
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(39, 38, 38, 0.158);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 350px;
+    max-height: 350px;
+    position: relative;
+    overflow: hidden; /* change */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.576) rgb(236, 232, 232);
+    opacity: 0;
+    animation-delay: 0.17s;
+}
+.complaintsHeader{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    padding: 7px 5px;
+    border-radius: 5px 5px 0px 0px;
+    background: white;
+    z-index: 100;
+}
+.complaintsList{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto; /* move scroll here */
+    padding: 5px 7px 15px 7px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.576) rgb(236, 232, 232);
+}
+.viewAll{
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-family: "Roboto", sans-serif;
+    color:gray;
+    border-radius: 10px;
+    padding: 5px 10px;
+    transition:all 0.3s ease;
+    cursor: pointer;
+    font-size: 13px;
+    border:1px solid rgb(233, 229, 229);
+    transition: all 0.3s ease;
+}
+.viewAll:hover{
+    border: 1.2px solid rgb(102, 100, 100);
+}
+.complaintItem{
+    padding:6px 12px;
+    display: flex;
+    gap: 9px;
+    cursor: pointer;
+    border-radius: 8px;
+    background-color: #ede8e885;
+    transition: all 0.3s ease;
+}
+.complaintImage{
+    width:70px;
+    height: 65px;
+    border-radius: 9px;
+}
+img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.complaintCategory{
+    flex:1;
+    display: grid;
+    grid-template-columns: 165px 1fr 0.5fr;
+    align-items: center;
+    gap: 10px;
+}
+.complaintTitle{
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: "Roboto", sans-serif;
+}
+.complaintTime{
+    font-size: 13px;
+    font-weight: 400;
+    color: gray;
+    font-family: "Roboto", sans-serif;
+}
+.bottomDiv{
+    position: sticky;
+    bottom: 0;
+    padding: 7px 0px;
+    background-color: white;
+    border-radius: 0px 0px 5px 5px;
+    z-index: 100;
+}
+.complaintsDashboard2{
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(39, 38, 38, 0.158);
+    display: flex;
+    flex-direction: column;
+    height: 350px;
+    max-height: 350px;
+    position: relative;
+    overflow: hidden; /* change */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.576) rgb(236, 232, 232);
+    padding:9px 6px;
+    opacity: 0;
+      animation-delay: 0.35s;
+}
+.complaintsDashboard2 .complaintsList{
+  margin-top: 10px;
+}
+.orderdetails{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: center;
+    gap: 8px;
+    padding-left:10px ;
+    cursor: pointer;
+}
+.complaintsReportsBox{
+  flex:1;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  background-color: white;
+  padding:13px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.complaintsReportsList{
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 25px;
+  padding: 0px 10px;
+}
+.reportsItem{
+  height: 210px;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(39, 38, 38, 0.226);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.reportsItem:hover{
+  transform: translateY(-5px);
+  box-shadow: 0 2px 3px rgba(161, 160, 160, 0.518);
+}
+.cardImgPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f5e5e5 0%, #fde8e8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+}
+.cardImgPlaceholder svg {
+  width: 40px;
+  height: 40px;
+  color: #e02020;
+  opacity: 0.4;
+  border-radius: 8px;
+}

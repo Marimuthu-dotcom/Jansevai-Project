@@ -1,0 +1,249 @@
+/* Notifications.module.css */
+
+.mainContainer {
+  background-color: #f5f6fa;
+  min-height: 100vh;
+  padding: 24px;
+  font-family: "Roboto", sans-serif;
+  border-radius: 15px;
+  
+}
+
+/* ── Page Header ── */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pageTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+/* Mark all read button */
+.markAllBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: #fff;
+  border: 1.5px solid #e2e5ef;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.markAllBtn:hover {
+  border-color: #e02020;
+  color: #e02020;
+}
+.markAllBtn svg { width: 15px; height: 15px; }
+
+/* ── Tab bar ── */
+.tabBar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e5ef;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab:hover    
+ { border-color: #e02020; color: #e02020; }
+.tabActive
+ { background: #e02020; border-color: #e02020; color: #fff; }
+.tabActive:hover
+ { color: #fff; }
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.3);
+  color: inherit;
+}
+.tabActive .tabBadge { background: rgba(255,255,255,0.35); color: #fff; }
+
+.notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notifItem {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.3s ease both;
+  position: relative;
+  border-left: 4px solid transparent;
+}
+.notifItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+}
+
+.unread {
+  border-left-color: #e02020;
+  background: #fffafa;
+}
+
+.notifItem:nth-child(1) 
+{ animation-delay: 0.04s; }
+.notifItem:nth-child(2) 
+{ animation-delay: 0.08s; }
+.notifItem:nth-child(3) 
+{ animation-delay: 0.12s; }
+.notifItem:nth-child(4) 
+{ animation-delay: 0.16s; }
+.notifItem:nth-child(5) 
+{ animation-delay: 0.20s; }
+.notifItem:nth-child(6) 
+{ animation-delay: 0.24s; }
+
+
+.unreadDot {
+  position: absolute;
+  top: 26px;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e02020;
+}
+.unreadDot::after {
+  content: var(--count);
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  display: block;
+  line-height: 1;
+  text-align: center;
+  font-size: 11.4px;
+  font-weight: 600;
+  border-radius: 50%;
+  color: white;
+}
+.notifIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.notifIcon svg { width: 20px; height: 20px; }
+
+.notifContent { flex: 1; min-width: 0; }
+
+.notifTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.notifDesc {
+  font-size: 12.5px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.notifMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notifTime {
+  font-size: 11.5px;
+  color: #838181;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.notifTime svg { width: 11px; height: 11px; }
+
+.notifTag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #ccc;
+  gap: 12px;
+}
+.emptyState svg
+ { width: 48px; height: 48px; }
+.emptyState p  
+ { font-size: 14px; color: #aaa; margin: 0; }
+
+@keyframes fadeUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(12px);
+ }
+  to   { 
+    opacity: 1; 
+    transform: translateY(0);
+ }
+}

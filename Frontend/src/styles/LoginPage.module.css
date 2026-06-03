@@ -1,0 +1,199 @@
+.loginOverlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.344);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.loginBox{
+    padding: 20px;
+    border-radius: 12px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+ }   
+ .overlayIn {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.boxIn {
+  animation: slideUp 0.4s ease forwards;
+}
+
+.overlayOut {
+  animation: fadeOut 0.4s ease forwards;
+}
+
+.boxOut {
+  animation: slideDown 0.4s ease forwards;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+}
+.registerForm{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    font-family: "Roboto", sans-serif;
+    min-width: 400px;
+}
+.form{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 8px;
+}
+.logoSection{
+  display: flex;
+  gap: 10px;
+  margin-bottom: 7px; 
+}
+.logo{
+  width: 40px;
+  height: 40px;
+}
+img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.websiteName{
+    color: black;
+    font-family: "Roboto", sans-serif;
+    font-size: 27px;
+}
+.inputGroup{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0px 2px;
+    position: relative;
+}
+
+.inputGroup label{
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.inputGroup input{
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 15px;
+}
+.eyeIcon {
+  position: absolute;
+  right: 10px;
+  top: 70%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.inputGroup input:focus{
+    border-color: #2563eb;
+}
+.createBtn{
+    padding: 10px;
+    border-radius: 7px;
+    outline: none;
+    border: transparent;
+    background:linear-gradient(135deg,red,yellow) ;
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+p{
+    font-weight: 500;
+    color: gray;
+}
+.registerForm span{
+    cursor: pointer;
+    color:red;
+}
+.successMessage{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 2000;
+}
+
+.errorMessage{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 2000;
+}
+.divider{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: gray;
+  font-size: 14px;
+}
+
+.divider::before,
+.divider::after{
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #ccc;
+}

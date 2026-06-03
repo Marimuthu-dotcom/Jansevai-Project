@@ -1,0 +1,305 @@
+.inviteContainer {
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+  border-radius: 15px;
+  font-family: "Roboto", sans-serif;
+}
+
+.mainContainer {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pageTitleBlock h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.pageSubtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.backBtn {
+  background: linear-gradient(135deg,rgb(235, 102, 7),rgb(223, 12, 12));
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  background: #c60202;
+  color: white;
+}
+
+.searchSection {
+  margin-bottom: 30px;
+}
+
+.searchBox {
+  position: relative;
+  max-width: 500px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.2s;
+  border: none;
+  background: rgba(200, 199, 199, 0.306);
+}
+
+.searchInput:focus {
+  outline: none;
+  background-color: rgba(198, 197, 197, 0.524);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+}
+
+.clearBtn:hover {
+  color: #ef4444;
+}
+
+/* Results Count */
+.resultsCount {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.resultsCount span {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Members Grid */
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+.memberInviteCard {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  animation: fadeUp 0.35s ease forwards;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.memberInviteCard:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+}
+
+.memberInfo {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.memberDetails {
+  flex: 1;
+}
+
+.memberName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.memberLocation {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 8px 0;
+}
+
+.memberStats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.memberStats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inviteMemberBtn {
+  padding: 8px 20px;
+  background: rgb(223, 12, 12);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.inviteMemberBtn:hover {
+  background: #c60202;
+  transform: scale(1.02);
+}
+
+/* No Results */
+.noResults {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+
+.noResults p {
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.noResults button {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Bulk Invite Section */
+.bulkInviteSection {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+}
+
+.bulkInviteSection p {
+  margin: 0;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.bulkInviteBtn {
+  padding: 8px 20px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.bulkInviteBtn:hover {
+  background: #059669;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .inviteContainer {
+    padding: 16px;
+  }
+  
+  .membersGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .memberInviteCard {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .memberInfo {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .bulkInviteSection {
+    left: 20px;
+    right: 20px;
+    justify-content: center;
+  }
+}

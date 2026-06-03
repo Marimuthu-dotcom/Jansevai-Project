@@ -1,0 +1,395 @@
+.mainContainer {
+  background-color: #f5f6fa;
+  min-height: 100vh;
+  padding: 15px;
+  font-family: "Roboto", sans-serif;
+  border-radius: 15px;
+}
+
+/* ── Back Button ── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #e02020;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 0;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+.backBtn:hover { opacity: 0.75; }
+.backBtn svg { width: 16px; height: 16px; }
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ── Left Column ── */
+.leftCol { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Profile Card ── */
+.profileCard {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  overflow: hidden;
+  animation: fadeUp 0.35s ease both;
+}
+
+.profileCardTop {
+  background: linear-gradient(135deg, #e02020 , #de5757 );
+  padding: 24px 20px 48px;
+  position: relative;
+  text-align: center;
+}
+
+.editBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.editBtn:hover { background: rgba(255,255,255,0.3); }
+.editBtn svg { width: 12px; height: 12px; }
+
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.avatarWrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.avatarCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+}
+.online  { background: #22c55e; }
+.offline { background: #d1d5db; }
+
+.profileName {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.roleBadge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* Profile Card Body */
+.profileCardBody {
+  padding: 20px;
+  margin-top: -28px;
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.infoIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #fff0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.infoIcon svg { width: 15px; height: 15px; color: #e02020; }
+
+.infoText {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap:10px;
+  min-width: 0;
+  padding: 4px;
+}
+.infoLabel {
+  font-size: 10.5px;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.infoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 4px 0;
+}
+
+/* ── Stats Mini Cards ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.statMini {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeUp 0.35s ease both;
+  animation-delay: 0.1s;
+}
+
+.statMiniNum {
+  font-size: 22px;
+  font-weight: 800;
+  color: #e02020;
+}
+
+.statMiniLabel {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ── Right Column ── */
+.rightCol { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Section Card ── */
+.sectionCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  animation: fadeUp 0.35s ease both;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.viewAllBtn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e02020;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+.viewAllBtn:hover { opacity: 0.7; }
+
+/* ── Complaint Row ── */
+.complaintList { display: flex; flex-direction: column; gap: 10px; }
+
+.complaintRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fafbfd;
+  border: 1.5px solid #f0f0f0;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.complaintRow:hover { border-color: #e02020; }
+
+.complaintRowIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.complaintRowIcon svg { width: 16px; height: 16px; }
+
+.complaintRowInfo { flex: 1; min-width: 0; }
+
+.complaintRowTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.complaintRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #aaa;
+}
+
+.complaintRowMeta svg { width: 11px; height: 11px; }
+
+/* Status Badge */
+.badge {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badgePending    { background: #fff7e6; color: #d97706; }
+.badgeInProgress { background: #e0f2fe; color: #0284c7; }
+.badgeResolved   { background: #dcfce7; color: #16a34a; }
+
+/* ── Activity Tab ── */
+.activityList { display: flex; flex-direction: column; gap: 0; }
+
+.activityItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+  position: relative;
+}
+.activityItem:last-child { border-bottom: none; }
+
+.activityDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.activityText {
+  flex: 1;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+.activityText strong { color: #1a1a2e; font-weight: 700; }
+
+.activityTime {
+  font-size: 11.5px;
+  color: #bbb;
+  white-space: nowrap;
+}
+
+/* ── Not Found ── */
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  font-family: "Roboto", sans-serif;
+}
+.notFound p {
+  font-size: 16px;
+  color: #888;
+  margin: 0;
+}
+.notFound button {
+  padding: 10px 20px;
+  background: #e02020;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.notFound button:hover { background: #c01a1a; }
+
+/* ── Animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
