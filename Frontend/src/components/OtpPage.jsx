@@ -2,7 +2,7 @@ import { useRef, useState ,useContext} from "react";
 import styles from "../styles/OtpPage.module.css";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 
 function OtpPage({loginClose,token ,setMessage,setMessageType}) {
 

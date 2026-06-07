@@ -3,7 +3,7 @@ import { Outlet, NavLink } from "react-router-dom";
 import styles from "../styles/Layout.module.css";
 import logo from "../assets/admin.png";
 import LoginPage from "../components/LoginPage";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 
 import {
   LayoutDashboard,
@@ -16,7 +16,7 @@ import {
 
 function Layout() {
 
-  const { token } = useContext(AuthContext);
+  const { token ,logout} = useContext(AuthContext);
 
   const navItems = [
   {
@@ -52,14 +52,20 @@ function Layout() {
 ];
 
    const[closing,setClosing]=useState(false);
-   const showLogin = !token;
+   const [isLoggingOut, setIsLoggingOut] = useState(false);
+   const showLogin = !token && !isLoggingOut;
 
-  const handleLoginSuccess = (newToken) => {
+  const handleLoginSuccess = () => {
     setClosing(true);
     setTimeout(() => {
-      login(newToken);
       setClosing(false);
-    }, 2000);
+    }, 500);
+  };
+
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    logout();                    
+    window.location.href = "/"; 
   };
 
 
@@ -97,7 +103,9 @@ function Layout() {
 
                 else if (item.name === "Dashboard") {
                 const isDashboardActive = location.pathname.startsWith('/dashboard') || 
-                                          location.pathname.startsWith('/notification');
+                                          location.pathname.startsWith('/notification') ||
+                                          location.pathname.startsWith('/community-updates') ||
+                                          location.pathname.startsWith('/recent-complaints');
                 
                 return isDashboardActive
                   ? `${styles.navItem} ${styles.active}`
@@ -119,7 +127,7 @@ function Layout() {
         </div>
         <div
           className={styles.contentPage}>
-            <Outlet />
+            <Outlet context={{ handleLogout }}/>
         </div>
         {(showLogin|| closing) && (
           <LoginPage loginClose={handleLoginSuccess} closing={closing}/>

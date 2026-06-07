@@ -2,7 +2,7 @@
 import { useState ,useContext} from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/InviteMember.module.css";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 
 function InviteMember() {
   const navigate = useNavigate();

@@ -37,17 +37,18 @@ exports.googleSignUp = async (req, res) => {
       [name, email, 1]
     );
 
-    const userId = result.id;
+    const userEmail = result.id;
 
     await db.promise().query(
       `INSERT INTO userDetails (id, user_email)
        VALUES (?, ?)`,
-      [userId, email]
+      [userEmail, email]
     );
     
 
     const jwtToken = jwt.sign(
-      { email: email, 
+      { id: userEmail,
+        email: email, 
         username: name }, 
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
@@ -67,6 +68,7 @@ exports.googleSignUp = async (req, res) => {
     res.status(500).json({ message: "Google registration failed" });
   }
 };
+
 
 exports.googleLogin = async (req, res) => {
   try {
@@ -100,6 +102,7 @@ exports.googleLogin = async (req, res) => {
     // JWT
     const jwtToken = jwt.sign(
       {
+        id: user.id,
         email: user.email,
         username: user.username
       },
@@ -285,8 +288,8 @@ exports.savePassword = async (req, res) => {
 exports.loginUser=async(req,res)=>{
 try{
      
-   const {userId,password}=req.body;
-   const [rows] = await db.promise().query("SELECT * FROM users WHERE email = ?", [userId]);
+   const {userEmail,password}=req.body;
+   const [rows] = await db.promise().query("SELECT * FROM users WHERE email = ?", [userEmail]);
 
 if (!rows.length) {
   return res.status(404).json({ message: "Account does not exist" });
@@ -604,6 +607,7 @@ exports.getComplaints = async (req, res) => {
         c.image_url,
         c.status,
         c.likes_count,
+        c.support_count,
         c.comments_count,
         c.created_at,
 
@@ -777,6 +781,7 @@ exports.getMemberComplaints = async (req, res) => {
     });
   }
 };
+
 exports.addComment = async (req, res) => {
 
   try {
@@ -800,12 +805,35 @@ exports.addComment = async (req, res) => {
       [complaintId,email,username,commentText]
     );
 
+    await db.promise().query(
+    `
+    UPDATE complaints
+    SET comments_count = (
+      SELECT COUNT(*)
+      FROM comments
+      WHERE complaint_id = ?
+    )
+    WHERE id = ?
+    `,
+    [complaintId, complaintId]
+  );
+
+    const [[complaint]] = await db.promise().query(
+    `
+    SELECT comments_count
+    FROM complaints
+    WHERE id = ?
+    `,
+    [complaintId]
+  );
+
     const newComment = {
       id: result.insertId,
       complaint_id: complaintId,
       user_email: email,
       username,
       comment_text: commentText,
+      commentsCount: complaint.comments_count,
       created_at: new Date()
     };
 
@@ -837,4 +865,201 @@ exports.getComments = async (req,res) => {
   );
 
   res.json(comments);
+};
+
+exports.updateStatus = async (req, res) => {
+  const { id }  = req.params;
+  const userEmail  = req.user.email;
+  
+  try {
+    // Already support பண்ணிருக்காரா check
+    const [existing] = await db.promise().query(
+      `SELECT id FROM complaint_supporters 
+       WHERE complaint_id = ? AND user_email = ?`,
+      [id, userEmail]
+    );
+
+    if (existing.length > 0) {
+      // ✅ Already supported — remove (unsupport)
+      await db.promise().query(
+        `DELETE FROM complaint_supporters 
+         WHERE complaint_id = ? AND user_email = ?`,
+        [id, userEmail]
+      );
+
+      // Count update
+      await db.promise().query(
+        `UPDATE complaints 
+         SET support_count = support_count - 1 
+         WHERE id = ?`,
+        [id]
+      );
+
+      const [complaint] = await db.promise().query(
+        `SELECT support_count FROM complaints WHERE id = ?`, [id]
+      );
+
+      const io = getIo();
+
+      io.emit("support-updated", {
+        complaintId:  Number(id),
+        supportCount: complaint[0].support_count,
+        userEmail,
+        action:       "removed"
+      });
+
+      return res.json(
+        { message: "Unsupported", 
+          supported: false });
+    }
+
+    // ✅ Support add
+    await db.promise().query(
+      `INSERT INTO complaint_supporters (complaint_id, user_email) VALUES (?, ?)`,
+      [id, userEmail]
+    );
+
+    await db.promise().query(
+      `UPDATE complaints 
+       SET support_count = support_count + 1 
+       WHERE id = ?`,
+      [id]
+    );
+
+    // Supporters list எடு (avatars-க்காக)
+    const [supporters] = await db.promise().query(`
+      SELECT u.id, u.username 
+      FROM complaint_supporters cs
+      JOIN users u ON cs.user_email = u.email
+      WHERE cs.complaint_id = ?
+      ORDER BY cs.created_at DESC
+      LIMIT 5
+    `, [id]);
+
+    const [complaint] = await db.promise().query(
+      `SELECT support_count FROM complaints WHERE id = ?`, [id]
+    );
+
+     const io = getIo(); 
+     
+    io.emit("support-updated", {
+      complaintId:  Number(id),
+      supportCount: complaint[0].support_count,
+      supporters,
+      userEmail,
+      action:       "added"
+    });
+
+    res.json({ message: "Supported", supported: true });
+
+  } catch (err) {
+    console.log(err);
+    console.log("Error in support:", err);
+    res.status(500).json({ message: "Failed" });
+  }
+};
+
+exports.resolvedImage =  async (req, res) => {
+  console.log("req.user =", req.user);
+  console.log("req.body =", req.body);
+
+  const { id }     = req.params;
+  const { status } = req.body;
+  const userEmail     = req.user.email;
+
+  try {
+    let resolvedImage = null;
+
+    // Resolved-ஆனா image upload பண்றோம்
+    if (status === "Resolved" && req.file) {
+      resolvedImage = req.file.path; // or cloudinary URL
+    }
+
+    if (resolvedImage) {
+      await db.promise().query(
+        `UPDATE complaints 
+         SET status = ?, resolved_image = ? 
+         WHERE id = ?`,
+        [status, resolvedImage, id]
+      );
+    } 
+    else
+   {
+      await db.promise().query(
+        `UPDATE complaints SET status = ? WHERE id = ?`,
+        [status, id]
+      );
+    }
+
+    const io = getIo();
+
+    io.emit("status-updated", {
+      complaintId:    Number(id),
+      status,
+      resolvedImage
+    });
+
+    res.json({ message: "Status updated" });
+
+  } catch (err) {
+   console.error("Status Update Error:", err);
+   res.status(500).json({
+    message: "Failed",
+    error: err.message
+  });
+  }
+};
+
+// Get supporters for a complaint
+exports.getSupporters = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT u.id, u.username
+      FROM complaint_supporters cs
+      JOIN users u ON cs.user_email = u.email
+      WHERE cs.complaint_id = ?
+      ORDER BY cs.created_at DESC
+      LIMIT 5
+    `, [id]);
+
+    const [count] = await db.promise().query(
+      `SELECT support_count FROM complaints WHERE id = ?`, [id]
+    );
+
+    res.json({
+      supporters:   rows,
+      supportCount: count[0]?.support_count || 0
+    });
+  } 
+  catch (err) 
+  {
+    res.status(500).json({ message: "Failed" });
+  }
+};
+
+exports.getActivities = async (req, res) => {
+   try{
+    const userEmail = req.user.email;
+
+    const [rows] = await db.promise().query(
+    `
+    SELECT
+      id,
+      title,
+      status,
+      updated_at
+    FROM complaints
+    WHERE user_email = ?
+      AND updated_at >= NOW() - INTERVAL 2 DAY
+    ORDER BY updated_at DESC
+    `,
+    [userEmail]
+  );
+
+  res.status(200).json(rows);
+   }
+   catch(err){
+    res.status(500).json({ message: "Failed to fetch activities" });
+   }
 };

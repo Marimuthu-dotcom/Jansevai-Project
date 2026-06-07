@@ -2,8 +2,9 @@ import { useState, useMemo , useContext} from "react";
 import styles from "../styles/Complaint.module.css";
 import { Bell ,SearchXIcon} from "lucide-react";
 import styles1 from "../styles/Dashboard.module.css";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import ComplaintCard from "../components/ComplaintCard"
+import { useNavigate,useOutletContext } from "react-router-dom";
 
 export const DUMMY_COMPLAINTS = [
   {
@@ -94,7 +95,9 @@ function Complaints() {
   const [statusFilter,   setStatusFilter]   = useState("All Status");
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const { user ,logout ,complaints} = useContext(AuthContext);
+  const { user ,complaints ,loading} = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { handleLogout } = useOutletContext();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -112,7 +115,7 @@ function Complaints() {
         statusFilter === "All Status" || c.status === statusFilter;
       return categoryMatch && statusMatch;
     });
-  }, [categoryFilter, statusFilter]);
+  }, [categoryFilter, statusFilter ,complaints]);
 
   return (
     <div className={styles1.complaintContainer}>
@@ -149,14 +152,14 @@ function Complaints() {
       
             <div className={styles1.profileContainer} onClick={(e) =>{ e.stopPropagation(); setShowDropdown(!showDropdown)}}>
             <div className={styles1.profiles}>
-              {user?.username?.charAt(0).toUpperCase()}
+              {user?.username.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className={styles1.profileName}>{user?.username
-                ?.charAt(0)
+                .charAt(0)
                 .toUpperCase() +
               user?.username
-                ?.slice(1)
+                .slice(1)
                 .toLowerCase()}</div>
               <div style={{ fontFamily: "Roboto, sans-serif", color:"gray",fontWeight:"500"}}>User</div>
             </div>
@@ -169,12 +172,10 @@ function Complaints() {
                 <button
                   className={styles1.logoutBtn}
                   onClick={() => {
-                    logout();
-                    sessionStorage.removeItem("token");
                     sessionStorage.removeItem("showOtp");
                     sessionStorage.removeItem("showPasswordBox");
-                    navigate("/");
-                    window.location.reload(); // or navigate("/login")
+                    handleLogout();
+                     // or navigate("/login")
                   }}
                 >
                   Logout
@@ -227,7 +228,11 @@ function Complaints() {
         </div>
       </div>
 
-      {/* Results Count */}
+      {loading ? (
+  <div className={styles.loadingContainer}>
+    <div className={styles.spinner} />
+  </div>
+) : (<>
       <p className={styles.resultsCount}>
         Showing <span>{filtered.length}</span> complaint{filtered.length !== 1 ? "s" : ""}
       </p>
@@ -245,6 +250,7 @@ function Complaints() {
           </div>
         )}
       </div>
+      </>)}
     </div>
   );
 }

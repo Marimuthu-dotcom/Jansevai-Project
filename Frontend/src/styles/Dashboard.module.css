@@ -285,7 +285,7 @@
     justify-content: space-between;
     align-items: center;
     position: sticky;
-    top: 0;
+    top: 5px;
     padding: 7px 5px;
     border-radius: 5px 5px 0px 0px;
     background: white;
@@ -296,10 +296,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    overflow-y: auto; /* move scroll here */
+    overflow-y: hidden; /* move scroll here */
     padding: 5px 7px 15px 7px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(128, 128, 128, 0.576) rgb(236, 232, 232);
+    background-color: transparent;
 }
 .viewAll{
     display: flex;
@@ -356,13 +355,34 @@ img{
     color: gray;
     font-family: "Roboto", sans-serif;
 }
-.bottomDiv{
-    position: sticky;
-    bottom: 0;
-    padding: 7px 0px;
-    background-color: white;
-    border-radius: 0px 0px 5px 5px;
-    z-index: 100;
+.bottomDiv {
+  position: sticky;
+  bottom: 0;
+  padding: 7px 8px;
+  background-color: white;
+  border-radius: 0px 0px 5px 5px;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.moreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  background: linear-gradient(135deg, #b30404, #ff0000);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: "Roboto", sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.moreBtn:hover {
+  transform: scale(0.85);
 }
 .complaintsDashboard2{
     background-color: white;

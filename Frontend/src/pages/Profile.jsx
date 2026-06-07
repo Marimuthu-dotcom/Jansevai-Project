@@ -2,9 +2,9 @@ import { useParams, useNavigate ,useLocation } from "react-router-dom";
 import { useContext ,useState ,useEffect} from "react";
 import styles from "../styles/Profile.module.css";
 import GetIntial from "../components/GetIntial";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import { SearchXIcon } from "lucide-react";
-import styles1 from "../styles/complaint.module.css";
+import styles1 from "../styles/RecentComplaints.module.css";
 import axios from "axios";
 
 const getIconColor = (title) => {
@@ -297,9 +297,12 @@ function Profile() {
         
               ))) : (
                 <div className={styles1.emptyState}>
-                    <SearchXIcon />
-                    <p>No complaints found for the selected filters.</p>
-                </div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <circle cx="11" cy="11" r="8" />
+                              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            <p>No recent complaints found.</p>
+                          </div>
               )
               }
             </div>

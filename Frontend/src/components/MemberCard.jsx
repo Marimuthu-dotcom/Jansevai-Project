@@ -1,5 +1,6 @@
 import styles from "../styles/Members.module.css"
 import GetIntial from "../components/GetIntial";
+import GetAvatarColor from "../components/GetAvatarColor";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import socket from "../socket/socket.js";
@@ -24,7 +25,7 @@ function MemberCard({ member }) {
       <div className={styles.avatarWrapper}>
         <div
           className={styles.avatarFallback}
-          style={{ background: "rgba(228, 14, 14, 0.85)" }}
+          style={{ background: GetAvatarColor(member.username) }}
         >
           {GetIntial(member.username)}
         </div>

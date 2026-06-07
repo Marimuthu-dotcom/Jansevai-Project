@@ -8,15 +8,16 @@ import road from "../assets/road.png";
 import streetlight from "../assets/streetlight.png";
 import roadCleaning from "../assets/roadCleaning.jfif";
 import drainageCleaning from "../assets/drainageCleaning.jfif";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import StatusBadge from "../components/StatusBadge";
-import styles1 from "../styles/complaint.module.css" ;
+import styles1 from "../styles/RecentComplaints.module.css" ;
+import styles2 from "../styles/Complaint.module.css" ;
 
 function Dashboard() {
 
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const { user ,logout ,complaints} = useContext(AuthContext);
+  const { user ,logout ,complaints, loading} = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -124,7 +125,7 @@ const resolvedCount =
 
       <div className={styles.profileContainer} onClick={(e) =>{ e.stopPropagation(); setShowDropdown(!showDropdown)}}>
       <div className={styles.profiles}>
-        {user?.username?.charAt(0).toUpperCase()}
+        {user?.username.charAt(0).toUpperCase()}
       </div>
       <div>
         <div className={styles.profileName}>{user?.username
@@ -173,7 +174,7 @@ const resolvedCount =
    {cardData.map((p,i)=>(
     <div key={i} className={styles.card}>
       <p className={styles.process}>{p.title}</p>
-      <p style={{ fontFamily: "Roboto, sans-serif" ,fontWeight:"700", fontSize:"25px" ,color:getColor(p.title)}}>{p.count}</p>
+      <p style={{ fontFamily: "Roboto, sans-serif" ,fontWeight:"700", fontSize:"25px" ,color:"rgb(43,54,54)"}}>{p.count}</p>
       <p style={{ fontFamily: "Roboto, sans-serif" ,fontWeight:"700", fontSize:"12px" ,color:"#16a34a"}}>+12% per month</p>
     </div>
    ))}
@@ -182,11 +183,12 @@ const resolvedCount =
         <div className={styles.complaintsDashboard1}>
           <div className={styles.complaintsHeader}>
             <span style={{fontFamily: "Roboto, sans-serif",fontWeight: "500",color:"black" }}>Recent Complaints</span>
-            <span className={styles.viewAll} 
-            >
-              View All <ChevronDown size={16} />
-            </span>
           </div>
+          {loading ? (
+            <div className={styles2.loadingContainer}>
+              <div className={styles2.spinner} />
+            </div>
+          ) : (<>
           <div className={styles.complaintsList}>
             {recentComplaints?.length > 0 ? (
               recentComplaints.map((c,i) => (
@@ -214,13 +216,26 @@ const resolvedCount =
               ))
             ):(
               <div className={styles1.emptyState}>
-                          <SearchXIcon />
-                          <p>No complaints found for the selected filters.</p>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          </svg>
+                          <p>No recent complaints found.</p>
                         </div>
             )
             }
           </div>
-          <div className={styles.bottomDiv}></div>
+          </>)}
+          <div className={styles.bottomDiv}>
+            <button
+            className={styles.moreBtn}
+            onClick={() => navigate("/recent-complaints",{
+      state: { complaints: recentComplaints }
+    })}
+          >
+            More <ChevronDown size={13} />
+          </button>
+          </div>
         </div>
         <div className={styles.complaintsDashboard2}>
           <div className={styles.complaintsHeader}>
@@ -242,15 +257,6 @@ const resolvedCount =
                 <p style={{fontSize:"13px",fontFamily: "Roboto, sans-serif",fontWeight: "400",color:"rgb(165, 164, 164)" }}>John Handle for a Cleaning Tomorrow</p>
               </div>
             </div>
-            <div style={{gap:"10px"}} className={styles.complaintItem}>
-              <div className={styles.complaintImage}>
-                   <img src={drainageCleaning} alt="Admin" />
-              </div>
-              <div className={styles.orderdetails}>
-                <h3 style={{fontSize:"15px",fontFamily: "Roboto, sans-serif",fontWeight: "500"}}>Mamsnbsbdbbbfbfb</h3>
-                <p style={{fontSize:"13px",fontFamily: "Roboto, sans-serif",fontWeight: "400",color:"rgb(165, 164, 164)" }}>Mari snsbdbdb</p>
-              </div>
-            </div>
             <div className={styles.complaintItem}>
               <div className={styles.complaintImage}>
                    <img src={roadCleaning} alt="Admin" />
@@ -261,7 +267,14 @@ const resolvedCount =
               </div>
             </div>
           </div>
-          <div className={styles.bottomDiv}></div>
+          <div className={styles.bottomDiv}>
+            <button
+            className={styles.moreBtn}
+            onClick={() => navigate("/community-updates")}
+          >
+            More <ChevronDown size={13} />
+          </button>
+          </div>
         </div>
   </div>
         <div className={styles.complaintsReportsBox}>

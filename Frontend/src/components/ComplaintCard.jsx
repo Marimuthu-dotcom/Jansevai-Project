@@ -3,7 +3,7 @@ import styles from "../styles/Complaint.module.css";
 import StatusBadge from "../components/StatusBadge";
 import { useNavigate } from "react-router-dom";
 import { useState,useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import axios from "axios";
 
 function ComplaintCard({ complaint }) {

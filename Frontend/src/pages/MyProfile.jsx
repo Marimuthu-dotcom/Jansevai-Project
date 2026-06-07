@@ -1,9 +1,10 @@
 import { useState ,useContext ,useEffect} from "react";
 import styles from "../styles/MyProfile.module.css";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import axios from "axios";
-import styles1 from "../styles/complaint.module.css";
+import styles1 from "../styles/RecentComplaints.module.css";
 import { SearchXIcon } from "lucide-react";
+import styles2 from "../styles/Complaint.module.css";
 
 
 const MY_ACTIVITY = [
@@ -58,15 +59,14 @@ function Toggle({ defaultOn, storageKey })
 function MyProfile() {
   const [activeTab, setActiveTab]   = useState("My Complaints");
   const [isEditing, setIsEditing]   = useState(false); 
-  const { user ,logout, token, myComplaints} = useContext(AuthContext);
+  const { user ,logout, token, myComplaints ,loading,activity} = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [closing, setClosing] = useState(false);
   const api = import.meta.env.VITE_API_URL;
-
-
   const [draft, setDraft] = useState({});
 
+  
   useEffect(() => {
   if (user) {
     setProfile(user);
@@ -178,6 +178,19 @@ const getTimeAgo = (createdAt) => {
   return `${minutes}m`;
 };
 
+const getDotColor = (status) => {
+  switch (status) {
+    case "Pending":
+      return "#ffc107";
+    case "In Progress":
+      return "#007bff";
+    case "Resolved":
+      return "#28a745";
+    default:
+      return "#6c757d";
+  }
+};
+
 const getIconColor = (title) => {
   const category = title.trim().toLowerCase();
 
@@ -189,6 +202,12 @@ const getIconColor = (title) => {
   if (category.includes("other")) return "#1a1a1a";
   if (category.includes("environment")) return "#00ff22";
   if (category.includes("drainage")) return "#424242";
+}
+
+const getStatus = (status) => {
+  if(status === "Pending") return "Complaint Submitted";
+  if(status === "In Progress") return "Complaint In Progress";
+  if(status === "Resolved") return "Complaint Resolved";
 }
   return (
     <div className={styles.mainContainer}>
@@ -359,7 +378,7 @@ const getIconColor = (title) => {
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{p.contributions+p.reported+p.resolved}</span>
+              <span className={styles.statNum}>{p?.contributions+p?.reported+p?.resolved}</span>
               <span className={styles.statLabel}>Total Complaints</span>
             </div>
             <div className={styles.statCard}>
@@ -396,6 +415,11 @@ const getIconColor = (title) => {
                 <h3 className={styles.sectionTitle}>My Complaints</h3>
                 <button className={styles.viewAllBtn}>View All</button>
               </div>
+              {loading ? (
+                          <div className={styles2.loadingContainer}>
+                            <div className={styles2.spinner} />
+                          </div>
+                        ) : (<>
               <div className={styles.complaintList}>
                 {myComplaints.length > 0 ? (
                 myComplaints.map((c,i) => (
@@ -415,13 +439,17 @@ const getIconColor = (title) => {
                   </div>)
                 )):(
                   <div className={styles1.emptyState}>
-                                            <SearchXIcon />
-                                            <p>No complaints found for the selected filters.</p>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                              <circle cx="11" cy="11" r="8" />
+                                              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                            </svg>
+                                            <p>No recent complaints found.</p>
                                           </div>
                 )
                 }
 
               </div>
+              </>)}
             </div>
           )}
 
@@ -431,15 +459,25 @@ const getIconColor = (title) => {
                 <h3 className={styles.sectionTitle}>Recent Activity</h3>
               </div>
               <div className={styles.activityList}>
-                {MY_ACTIVITY.map((a) => (
-                  <div key={a.id} className={styles.activityRow}>
-                    <div className={styles.activityDot} style={{ background: a.color }} />
+                {activity.length > 0 ? (
+                activity?.map((a, i) => (
+                  <div key={i} className={styles.activityRow}>
+                    <div className={styles.activityDot} style={{ background: getDotColor(a.status) }} />
                     <div className={styles.activityBody}>
-                      <div className={styles.activityText}><strong>{a.action}</strong> — {a.detail}</div>
-                      <div className={styles.activityTime}>{a.time}</div>
+                      <div className={styles.activityText}><strong>{getStatus(a.status)}</strong> — {a.title}</div>
+                      <div className={styles.activityTime}>{getTimeAgo(a.updated_at)}</div>
                     </div>
                   </div>
-                ))}
+                ))):(
+                  <div className={styles1.emptyState}>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                              <circle cx="11" cy="11" r="8" />
+                                              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                            </svg>
+                                            <p>No recent complaints found.</p>
+                                          </div>
+                )
+                }
               </div>
             </div>
           )}

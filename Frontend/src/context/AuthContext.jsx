@@ -1,8 +1,7 @@
-import { createContext, useState ,useEffect} from "react";
+import { useState ,useEffect} from "react";
 import axios from "axios";
 import socket from "../socket/socket.js";
-
-export const AuthContext = createContext();
+import { AuthContext } from "./CreateContext.jsx"
 
 export const AuthProvider = ({ children }) => {
   const api = import.meta.env.VITE_API_URL;
@@ -17,6 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [myComplaints, setMyComplaints] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [commentsCache, setCommentsCache] = useState({});
+  const [supportersCache, setSupportersCache] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,9 +64,17 @@ export const AuthProvider = ({ children }) => {
 
         setMyComplaints(myComplaintsRes.data);
 
+      const activityRes = await axios.get(
+        `${api}/api/auth/my-activities`,
+        {
+          headers: {  Authorization: `Bearer ${token}` }
+        }
+      );
+      setActivity(activityRes.data);
+
       } 
       catch (err) {
-        console.log(err);
+        console.log("Error:",err);
       } finally {
         setLoading(false);
       }
@@ -72,6 +82,34 @@ export const AuthProvider = ({ children }) => {
 
     fetchData();
   }, [token]);
+
+  useEffect(() => {
+
+  const handleNewComment = (comment) => {
+    setCommentsCache(prev => ({ ...prev,
+       [comment.complaint_id]: [
+        ...(prev[comment.complaint_id] || []),
+        comment
+      ]
+    }));
+    
+    setComplaints(prev =>
+    prev.map(c =>
+      c.id === comment.complaint_id
+        ? {
+            ...c,
+            comments_count: (comment.commentsCount || 0)
+          }
+        : c
+    )
+  );
+  };
+
+
+  socket.on("new-comment", handleNewComment);
+  return () => socket.off("new-comment", handleNewComment);
+}, []);
+
 
   useEffect(() => {
 
@@ -127,6 +165,27 @@ useEffect(() => {
     socket.off("new-member");
   };
 
+}, []);
+
+useEffect(() => {
+  const handleSupportUpdate = (data) => {
+    // Complaints array update
+    setComplaints(prev => prev.map(c =>
+      c.id === data.complaintId
+        ? { ...c, support_count: data.supportCount }
+        : c
+    ));
+    // Supporters cache update
+    setSupportersCache(prev => ({
+      ...prev,
+      [data.complaintId]: {
+        supportCount: data.supportCount,
+        supporters: data.supporters
+      }
+    }));
+  };
+  socket.on("support-updated", handleSupportUpdate);
+  return () => socket.off("support-updated", handleSupportUpdate);
 }, []);
 
 useEffect(() => {
@@ -186,6 +245,22 @@ useEffect(() => {
 
 }, []);
 
+useEffect(() => {
+  const handleStatusUpdate = (data) => {
+    setComplaints(prev => prev.map(c =>
+      c.id === data.complaintId
+        ? {
+            ...c,
+            status: data.status,
+            ...(data.resolvedImage && { resolved_image: data.resolvedImage })
+          }
+        : c
+    ));
+  };
+  socket.on("status-updated", handleStatusUpdate);
+  return () => socket.off("status-updated", handleStatusUpdate);
+}, []);
+
   const login = (token) => {
     localStorage.setItem("token", token);
     setToken(token);
@@ -210,7 +285,12 @@ useEffect(() => {
         members,
         loading,
         complaints,
-        myComplaints
+        commentsCache,
+        setCommentsCache,
+        supportersCache,
+        setSupportersCache,
+        myComplaints,
+        activity
       }}
     >
       {children}

@@ -23,6 +23,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/uploads",express.static(path.join(__dirname, "uploads")));
 
+
 io.on("connection", (socket) => {
    console.log("User Connected:", socket.id);
    

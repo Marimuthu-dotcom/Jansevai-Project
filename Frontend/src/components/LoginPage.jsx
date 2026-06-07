@@ -4,7 +4,7 @@ import styles from "../styles/LoginPage.module.css";
 import OtpPage from "../components/OtpPage";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/CreateContext";
 import styles1 from "../styles/OtpPage.module.css";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -62,9 +62,7 @@ function LoginPage({loginClose,closing}) {
 
     const token=response.data.token;
     
-    setToken(token); 
     login(token);
-    
 
     setMessage("Proceed");
 
@@ -75,7 +73,7 @@ function LoginPage({loginClose,closing}) {
     setTimeout(() => {
       setMessage("");
       setMessageType("");
-    }, 3000);
+    }, 2000);
 
   } 
   catch (error) {
@@ -91,7 +89,7 @@ function LoginPage({loginClose,closing}) {
     setTimeout(() => {
       setMessage("");
       setMessageType("");
-    }, 3000);
+    }, 2000);
 
   }
 
@@ -107,13 +105,11 @@ const handleLogin = async (e) => {
 
     const token = res.data.token;
 
-    login(token);
-
     setLoading(false);
     setSuccess(true);
 
     setTimeout(()=>{
-      loginClose(token);
+      login(token);
       
     },2000);
 
@@ -125,7 +121,7 @@ const handleLogin = async (e) => {
     setTimeout(()=>{
           setMessage("");
           setMessageType("");
-      },3000);
+      },2000);
 
       console.log(err);
   }
@@ -142,21 +138,18 @@ const handleGoogleSignUp = async (credentialResponse) => {
     const token = res.data.token;
     console.log(token);
 
-   login(token);
-
     setLoading(false);
     setSuccess(true);
 
     setTimeout(() => {
-      loginClose(token);
-     
+     login(token);
     }, 2000);
 
   } catch (err) {
     setLoading(false);
     setMessage(err.response?.data?.message || "Google SignUp Failed");
     setMessageType("error");
-    setTimeout(() => { setMessage(""); setMessageType(""); }, 3000);
+    setTimeout(() => { setMessage(""); setMessageType(""); }, 2000);
   }
 };
 
@@ -171,13 +164,11 @@ const handleGoogleLogin = async (credentialResponse) => {
     const token = res.data.token;
     console.log(token);
 
-    login(token);
 
     setLoading(false);
     setSuccess(true);
 
     setTimeout(() => {
-      loginClose(token);
       login(token);
     }, 2000);
 
@@ -185,7 +176,7 @@ const handleGoogleLogin = async (credentialResponse) => {
     setLoading(false);
     setMessage(err.response?.data?.message || "Google SignUp Failed");
     setMessageType("error");
-    setTimeout(() => { setMessage(""); setMessageType(""); }, 3000);
+    setTimeout(() => { setMessage(""); setMessageType(""); }, 2000);
   }
 };
 

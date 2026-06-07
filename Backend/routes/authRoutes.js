@@ -15,7 +15,11 @@ const { registerUser ,
      likeComplaint,
      getMemberComplaints,
      addComment,
-     getComments
+     getComments,
+     updateStatus,
+     resolvedImage,
+     getSupporters,
+     getActivities
   } = require("../controller/authController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const upload = require("../upload/uploadMiddleware");
@@ -36,5 +40,11 @@ router.post("/likeComplaint/:id",verifyToken,likeComplaint);
 router.get("/member-complaints/:email",getMemberComplaints);
 router.post("/add-comments",verifyToken,addComment);
 router.get("/get-comments/:complaintId",getComments);
+router.post("/support/:id", verifyToken, updateStatus );
+router.put("/status/:id",verifyToken,upload.single("resolvedImage"),resolvedImage);
+router.get("/supporters/:id",getSupporters);
+router.get("/my-activities",verifyToken,getActivities);
 
 module.exports = router;
+
+

@@ -24,7 +24,7 @@
 .sideBar{
     position: sticky;   /* 👈 fixed inside layout */
     top: 0;
-    height: 100vh;
+    max-height: 107vh;
     background-color: white;
     display:flex;
     flex-direction: column;
