@@ -19,7 +19,11 @@ const { registerUser ,
      updateStatus,
      resolvedImage,
      getSupporters,
-     getActivities
+     getActivities,
+     getMemberActivities,
+     getCategories,
+     getStatusSnapshot,
+     getCategoryTrends
   } = require("../controller/authController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const upload = require("../upload/uploadMiddleware");
@@ -38,12 +42,15 @@ router.get("/getComplaints",verifyToken,getComplaints);
 router.get("/getMyComplaints",verifyToken,getMyComplaints);
 router.post("/likeComplaint/:id",verifyToken,likeComplaint);
 router.get("/member-complaints/:email",getMemberComplaints);
+router.get("/member-activity/:email",getMemberActivities)
 router.post("/add-comments",verifyToken,addComment);
 router.get("/get-comments/:complaintId",getComments);
 router.post("/support/:id", verifyToken, updateStatus );
 router.put("/status/:id",verifyToken,upload.single("resolvedImage"),resolvedImage);
 router.get("/supporters/:id",getSupporters);
 router.get("/my-activities",verifyToken,getActivities);
+router.get("/category-stats", verifyToken, getCategories);
+router.get("/status-snapshot",verifyToken,getStatusSnapshot);
 
 module.exports = router;
 

@@ -12,7 +12,6 @@ import ChatBox from "./pages/ChatBox";
 import NotificationPage from "./pages/NotificationPage";
 import InviteMember from "./pages/InviteMember";
 import RecentComplaints from "./pages/RecentComplaints";
-import CommunityUpdates from "./pages/CommunityUpdates";
 import { Navigate } from "react-router-dom";
 function App() {
 
@@ -69,10 +68,6 @@ function App() {
           <Route 
             path="/recent-complaints"  
             element={<RecentComplaints />} 
-          />
-          <Route 
-            path="/community-updates"  
-            element={<CommunityUpdates />} 
           />
          </Route>
     </Routes>

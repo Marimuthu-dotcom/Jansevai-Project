@@ -1,13 +1,18 @@
 import { useState,useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/Dashboard.module.css";
-import { Bell,ChevronDown,SearchXIcon } from "lucide-react";
+import { Bell,ChevronDown,SearchXIcon,TrendingUp,TrendingDown,Minus} from "lucide-react";
 import water from "../assets/plumbing-maintenance.png";
 import drainage from "../assets/pollution.png";
 import road from "../assets/road.png";
 import streetlight from "../assets/streetlight.png";
-import roadCleaning from "../assets/roadCleaning.jfif";
-import drainageCleaning from "../assets/drainageCleaning.jfif";
+import garbage from "../assets/garbage.png"
+import publicsafety from "../assets/public-safety.png";
+import environment from "../assets/forest.png";
+import fall from "../assets/fall.png"
+import growth from "../assets/growth.png"
+import stable from "../assets/stability.png"
+import others from "../assets/other.png"
 import { AuthContext } from "../context/CreateContext";
 import StatusBadge from "../components/StatusBadge";
 import styles1 from "../styles/RecentComplaints.module.css" ;
@@ -15,19 +20,11 @@ import styles2 from "../styles/Complaint.module.css" ;
 
 function Dashboard() {
 
-  const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const { user ,logout ,complaints, loading} = useContext(AuthContext);
+  const { user ,logout ,complaints, loading ,trends ,statusDiff, statusPercentages ,statusCounts } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-
-    if (search.trim()) {
-      navigate(`/complaint?search=${search}`);
-    }
-  };
 
   const recentComplaints = complaints?.filter((complaint) => {
   const complaintDate = complaint.created_at.slice(0, 10);
@@ -35,7 +32,7 @@ function Dashboard() {
   const today = new Date();
   const twoDaysAgo = new Date();
 
-  twoDaysAgo.setDate(today.getDate() - 2);
+  twoDaysAgo.setDate(today.getDate() - 7);
 
   return complaintDate >= twoDaysAgo.toISOString().slice(0, 10);
   });  
@@ -65,59 +62,94 @@ function Dashboard() {
   return `${minutes}m`;
 };
 
-const getColor = (process) => {
-  if (process === "Pending") return "rgb(237, 15, 15)";
-  if (process === "In Progress") return "rgb(15, 193, 237)";
-  if (process === "Resolved") return "rgb(40, 231, 15)";
-  return "black"; 
+console.log(statusDiff);
+console.log(statusPercentages);
+
+const totalComplaints  = statusCounts?.total      ?? complaints?.length ?? 0;
+const pendingCount     = statusCounts?.pending     ?? complaints?.filter(c => c.status === "Pending").length     ?? 0;
+const inProgressCount  = statusCounts?.inProgress  ?? complaints?.filter(c => c.status === "In Progress").length ?? 0;
+const resolvedCount    = statusCounts?.resolved    ?? complaints?.filter(c => c.status === "Resolved").length    ?? 0;
+
+  const getCount = (category) => 
+{
+  return complaints?.filter(
+    c => c.category?.trim().toLowerCase().includes(category.trim().toLowerCase())
+  ).length || 0;
 };
 
-const totalComplaints = complaints?.length || 0;
+  const getDiffLabel = (val,per) => 
+{
+  if (val === undefined || val === null || val === 0)
+    return (
+      <span className={styles.percent} style={{ color: "gray", backgroundColor: "rgba(171, 168, 168, 0.37)" }}>
+        — {per !== undefined && per !== null ? `${per}%` : "0%"}
+      </span>
+    );
+  if (val > 0) 
+    return (<span className={styles.percent} style={{color:"#16a34a",backgroundColor:"rgba(140, 244, 109, 0.24)"}}>▲ +{per}%</span> );
+  return (<span className={styles.percent} style={{color:"#dc2626",backgroundColor:"rgba(247, 175, 175, 0.26)"}}>▼ -{per}%</span> );
+};
 
-const pendingCount =
-  complaints?.filter((c) => c.status === "Pending").length || 0;
-
-const inProgressCount =
-  complaints?.filter((c) => c.status === "In Progress").length || 0;
-
-const resolvedCount =
-  complaints?.filter((c) => c.status === "Resolved").length || 0;
-
-  const cardData = [
-  { title: "Total Complaints", count: totalComplaints },
-  { title: "In Progress", count: inProgressCount },
-  { title: "Pending", count: pendingCount },
-  { title: "Resolved", count: resolvedCount },
+const cardData = [
+  { title: "Total Complaints", count: totalComplaints, diffKey: null ,percent: null },
+  { title: "In Progress",      count: inProgressCount, diffKey: statusDiff?.inProgress ,percent: statusPercentages?.inProgress},
+  { title: "Pending",          count: pendingCount,    diffKey: statusDiff?.pending ,percent:  statusPercentages?.pending},
+  { title: "Resolved",         count: resolvedCount,   diffKey: statusDiff?.resolved ,percent:  statusPercentages?.resolved},
 ];
+
+const reportCards = [
+  {
+    title: "Water Supply",
+    image: water,
+    border: "rgb(22, 131, 232)"
+  },
+  {
+    title: "Street Light",
+    image: streetlight,
+    border: "rgb(242, 230, 7)"
+  },
+  {
+    title: "Roads & Streets",
+    image: road,
+    border: "black"
+  },
+  {
+    title: "Drainage",
+    image: drainage,
+    border: "rgb(165, 164, 164)"
+  },
+  {
+    title: "Garbage",
+    image: garbage,
+    border: "rgb(151, 238, 114)"
+  },
+  {
+    title: "Public Safety",
+    image: publicsafety,
+    border: "rgb(240, 12, 12)"
+  },
+  {
+    title: "Environment",
+    image: environment,
+    border: "rgb(12, 236, 61)"
+  },
+  {
+    title: "Others",
+    image: others,
+    border: "rgb(189, 134, 6)"
+  }
+]; 
 
   return (
     <div className={styles.mainDashboard}>
       <div className={styles.dashboardHeader}>
         <div className={styles.searchDiv}>
-          <form
-        onSubmit={handleSearch}
-        className={styles.searchForm}
-      >
-        <input
-          type="text"
-          placeholder="Search complaint..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={styles.searchInput}
-        />
-
-        <button
-          type="submit"
-          className={styles.searchBtn}
-        >
-          Search
-        </button>
-      </form>
+          <h2>Dashboard</h2>
         </div>
 
       <div className={styles.profileDiv}>
         <div className={styles.notificationDiv} onClick={(e) =>{ e.stopPropagation(); navigate("/notification")}}>
-        <Bell size={23} />
+        <Bell size={27} />
         <span className={styles.notificationBadge}>
           3
         </span>
@@ -162,7 +194,7 @@ const resolvedCount =
       </div>
       <div className={styles.mainDiv}>
            <div className={styles.welcomeSection}>
-    <h1>Good Morning, Muthu 👋</h1>
+    
 
     <p>
       Manage and track public complaints efficiently
@@ -175,7 +207,7 @@ const resolvedCount =
     <div key={i} className={styles.card}>
       <p className={styles.process}>{p.title}</p>
       <p style={{ fontFamily: "Roboto, sans-serif" ,fontWeight:"700", fontSize:"25px" ,color:"rgb(43,54,54)"}}>{p.count}</p>
-      <p style={{ fontFamily: "Roboto, sans-serif" ,fontWeight:"700", fontSize:"12px" ,color:"#16a34a"}}>+12% per month</p>
+      {p.title !== "Total Complaints"? getDiffLabel(p.diffKey ,p.percent) : null}
     </div>
    ))}
   </div>
@@ -208,9 +240,25 @@ const resolvedCount =
                 }
               </div>
               <div className={styles.complaintCategory}>
+                <div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-start",gap:"5px"}}>
                 <span className={styles.complaintTitle}>{c.title}</span>
-                <span className={styles.complaintTime}>{getTimeAgo(c.created_at)}</span>
-                <StatusBadge status={c.status} />
+                <span className={styles.cardLocation}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                {c.location}
+                </span>
+                </div>
+                <span className={styles.complaintDate}>{c.category}</span>
+                <span className={styles.complaintTime}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  {getTimeAgo(c.created_at)} Ago
+                </span>
+                <span style={{display:"flex",justifyContent:"flex-end"}}><StatusBadge status={c.status} /></span>
               </div>
             </div>
               ))
@@ -237,86 +285,85 @@ const resolvedCount =
           </button>
           </div>
         </div>
-        <div className={styles.complaintsDashboard2}>
-          <div className={styles.complaintsHeader}>
-            <span style={{fontFamily: "Roboto, sans-serif",fontWeight: "500",color:"black" }}>Community Updates</span>
-          </div>
-          <div style={{gap:"15px"}} className={styles.complaintsList}>
-            <div className={styles.complaintItem}>
-              <div className={styles.complaintImage}>
-                    <div className={styles.cardImgPlaceholder}>
-                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                               <rect x="3" y="3" width="18" height="18" rx="3" />
-                               <circle cx="8.5" cy="8.5" r="1.5" />
-                               <polyline points="21 15 16 10 5 21" />
-                             </svg>
-                  </div>
-              </div>
-              <div className={styles.orderdetails}>
-                <h3 style={{fontSize:"15px",fontFamily: "Roboto, sans-serif",fontWeight: "500" }}>Clean City Drive on 20th May</h3>
-                <p style={{fontSize:"13px",fontFamily: "Roboto, sans-serif",fontWeight: "400",color:"rgb(165, 164, 164)" }}>John Handle for a Cleaning Tomorrow</p>
-              </div>
-            </div>
-            <div className={styles.complaintItem}>
-              <div className={styles.complaintImage}>
-                   <img src={roadCleaning} alt="Admin" />
-              </div>
-              <div className={styles.orderdetails}>
-                <h3 style={{fontSize:"15px",fontFamily: "Roboto, sans-serif",fontWeight: "500"}}>Mamsnbsbdbbbfbfb</h3>
-                <p style={{fontSize:"13px",fontFamily: "Roboto, sans-serif",fontWeight: "400",color:"rgb(165, 164, 164)" }}>Mari snsbdbdb</p>
-              </div>
-            </div>
-          </div>
-          <div className={styles.bottomDiv}>
-            <button
-            className={styles.moreBtn}
-            onClick={() => navigate("/community-updates")}
-          >
-            More <ChevronDown size={13} />
-          </button>
-          </div>
-        </div>
   </div>
         <div className={styles.complaintsReportsBox}>
-          <div style={{fontFamily: "Roboto, sans-serif",fontWeight: "500" }}>Trending Issue</div>
+          <div className={styles.stateBar} style={{fontFamily: "Roboto, sans-serif",fontWeight: "500" }}>
+            <div>Trending Issue</div>
+            <div className={styles.stateMeaning}>
+             <span className={styles.icon} >
+              <span className={styles.iconImg}><img src={growth} alt="" /></span>{" Increment"}
+              </span>
+            <span className={styles.icon}>
+              <span className={styles.iconImg}><img src={fall} alt="" /></span>{" Decrement"}
+            </span>
+            <span className={styles.icon}>
+              <span className={styles.iconImg} ><img src={stable} alt="" /></span>{" Stable"}
+            </span>
+            </div>
+            </div>
+
           <div className={styles.complaintsReportsList}>
-           <div className={styles.reportsItem} style={{borderLeft:"5px solid rgb(22, 131, 232)"}}>
-             <div style={{width:"57px",height:"57px"}}>
-              <img src={water} alt="water" />
-             </div>
-             <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",marginTop:"15px",paddingLeft:"10px"}}>
-              <h2 style={ {fontFamily:"Roboto, sans-serif" ,fontWeight:"700" ,fontSize:"19px",color:"red"}}>Water Supply</h2>
-             <p style={{fontFamily:"Roboto, sans-serif" ,fontSize:"14px" ,fontWeight:"500" ,color:"gray"}}>34 Complaints</p>
-             </div>
+        {reportCards.map((card, index) => (
+          <div
+            key={index}
+            className={styles.reportsItem}
+            style={{
+              borderLeft: `5px solid ${card.border}`
+            }}
+          >
+            <span className={styles.stateIcon}>{
+              
+             trends[card.title] === "up" ? <span className={styles.icon}>
+                                           <span className={`${styles.iconImg} ${styles.up}`}><img src={growth} alt="" />
+                                           </span>
+                                           </span> 
+                                          : trends[card.title] === "down" ?
+                                          <span className={styles.icon}>
+                                            <span className={`${styles.iconImg} ${styles.down}`}><img src={fall} alt="" /></span>
+                                          </span>: 
+                                           <span className={styles.icon}>
+                                            <span className={`${styles.iconImg} ${styles.stable}`}><img src={stable} alt="" /></span>
+                                          </span>
+            }</span>
+            
+            <div style={{ width: "57px", height: "57px" }}>
+              <img src={card.image} alt={card.title} />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
+                marginTop: "15px"
+              }}
+            >
+              <h2
+                style={{
+                  fontFamily: "Roboto, sans-serif",
+                  fontWeight: "700",
+                  fontSize: "17px",
+                  color: "rgb(34,65,76)"
+                }}
+              >
+                {card.title}
+              </h2>
+
+              <p
+                style={{
+                  fontFamily: "Roboto, sans-serif",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "gray"
+                }}
+              >
+                {getCount(card.title)} Complaints
+              </p>
+            </div>
           </div>
-          <div className={styles.reportsItem} style={{borderLeft:"5px solid rgb(242, 230, 7)"}}>
-            <div style={{width:"57px",height:"57px"}}>
-              <img src={streetlight} alt="water" />
-             </div>
-             <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",marginTop:"15px",paddingLeft:"10px"}}>
-              <h2 style={ {fontFamily:"Roboto, sans-serif" ,fontWeight:"700" ,fontSize:"19px",color:"red"}}>Street Light</h2>
-             <p style={{fontFamily:"Roboto, sans-serif" ,fontSize:"14px" ,fontWeight:"500" ,color:"gray"}}>34 Complaints</p>
-             </div>
-          </div>
-          <div className={styles.reportsItem} style={{borderLeft:"5px solid black"}}>
-            <div style={{width:"57px",height:"57px"}}>
-              <img src={road} alt="water" />
-             </div>
-             <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",marginTop:"15px"}}>
-              <h2 style={ {fontFamily:"Roboto, sans-serif" ,fontWeight:"700" ,fontSize:"19px",color:"red"}}>Road Repair</h2>
-             <p style={{fontFamily:"Roboto, sans-serif" ,fontSize:"14px" ,fontWeight:"500" ,color:"gray"}}>34 Complaints</p>
-             </div>
-          </div>
-          <div className={styles.reportsItem} style={{borderLeft:"5px solid rgb(145, 145, 145)"}}>
-            <div style={{width:"57px",height:"57px"}}>
-              <img src={drainage} alt="water" />
-             </div>
-             <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",marginTop:"15px"}}>
-              <h2 style={ {fontFamily:"Roboto, sans-serif" ,fontWeight:"700" ,fontSize:"19px",color:"red"}}>Drainage Clean</h2>
-             <p style={{fontFamily:"Roboto, sans-serif" ,fontSize:"14px" ,fontWeight:"500" ,color:"gray"}}>34 Complaints</p>
-             </div>
-          </div>
-          </div>
+        ))}
+</div>
         </div>
       </div>
     </div>

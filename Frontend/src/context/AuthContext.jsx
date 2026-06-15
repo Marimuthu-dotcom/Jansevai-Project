@@ -19,6 +19,11 @@ export const AuthProvider = ({ children }) => {
   const [activity, setActivity] = useState([]);
   const [commentsCache, setCommentsCache] = useState({});
   const [supportersCache, setSupportersCache] = useState({});
+  const [trends, setTrends] = useState({});
+  const [categoryStats, setCategoryStats] = useState(null);
+  const [statusDiff,setStatusDiff] = useState(null);
+  const [statusPercentages,setStatusPercentages] = useState(null);
+  const [statusCounts, setStatusCounts] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +76,29 @@ export const AuthProvider = ({ children }) => {
         }
       );
       setActivity(activityRes.data);
+
+      const res = await axios.get(
+        `${api}/api/auth/category-stats`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setCategoryStats(res.data);
+
+      const snapshotRes = await axios.get(
+          `${api}/api/auth/status-snapshot`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setStatusCounts(snapshotRes.data.counts);
+        setStatusPercentages(snapshotRes.data.percentages);
+        setStatusDiff(snapshotRes.data.diff);
+        console.log(snapshotRes.data.diff);
+        console.log(snapshotRes.data.percentages); 
+        console.log(snapshotRes.data.counts);
 
       } 
       catch (err) {
@@ -167,6 +195,46 @@ useEffect(() => {
 
 }, []);
 
+// இப்படி replace பண்ணு
+/* useEffect(() => {
+  socket.on("category-stats-updated", (data) => {
+    if (!data?.categoryData) 
+      return;
+
+    setCategoryStats((prev) => 
+    {
+      if (!prev) 
+        return prev;
+
+      const updatedCategories = prev.categories.map((cat) => 
+      {
+        const updated = data.categoryData[cat.name];
+
+        if (!updated) 
+          return cat;
+
+        return {
+          ...cat,
+          count: updated.count,
+          currentPercent: updated.currentPercent,
+          prevPercent:    updated.prevPercent,
+          diff:           updated.diff,
+          trend:          updated.trend,
+        };
+      });
+
+      return { 
+      ...prev,
+      total: data.total,
+      resolvedRate: data.resolvedRate,
+      mostActive: data.mostActiveCategory, 
+      categories: updatedCategories };
+    });
+  });
+
+  return () => socket.off("category-stats-updated");
+}, []); */
+
 useEffect(() => {
   const handleSupportUpdate = (data) => {
     // Complaints array update
@@ -190,12 +258,51 @@ useEffect(() => {
 
 useEffect(() => {
 
-  const handleComplaint = (complaint) => {
+  const handleComplaint = ({complaint,trends,
+    categoryData,
+    total,
+    resolvedRate,
+    mostActiveCategory}) => {
 
     setComplaints(prev => [
       complaint,
       ...prev
     ]);
+
+    setTrends(trends);
+
+
+    if (categoryData) {
+    setCategoryStats((prev) => 
+    {
+      if (!prev) 
+        return prev;
+
+      const updatedCategories = prev.categories.map((cat) => 
+      {
+        const updated = categoryData[cat.name];
+
+        if (!updated) 
+          return cat;
+
+        return {
+          ...cat,
+          count: updated.count,
+          currentPercent: updated.currentPercent,
+          prevPercent:    updated.prevPercent,
+          diff:           updated.diff,
+          trend:          updated.trend,
+        };
+      });
+
+      return { 
+      ...prev,
+      total: total,
+      resolvedRate: resolvedRate,
+      mostActive: mostActiveCategory, 
+      categories: updatedCategories };
+    });
+  }
 
     if (complaint.user_email === user?.email) {
 
@@ -252,10 +359,38 @@ useEffect(() => {
         ? {
             ...c,
             status: data.status,
-            ...(data.resolvedImage && { resolved_image: data.resolvedImage })
+            ...(data.resolved_url && { resolved_url: data.resolved_url })
           }
         : c
     ));
+
+    setActivity((prev) => prev.map((a) =>
+        a.id === data.complaintId
+          ? {
+              ...a,
+              status:     data.status,
+              updated_at: new Date().toISOString(),
+            }
+          : a
+      )
+    );
+
+    setMyComplaints((prev)=> prev.map((a)=>
+        a.id === data.complaintId
+          ? {
+              ...a,
+              status:     data.status
+            }
+          : a
+    ));
+  
+  setStatusDiff(data.diff);
+  setStatusPercentages(data.percentages); 
+  setStatusCounts(data.counts);
+  console.log(data.diff);
+  console.log(data.percentages); 
+  console.log(data.counts);
+  
   };
   socket.on("status-updated", handleStatusUpdate);
   return () => socket.off("status-updated", handleStatusUpdate);
@@ -290,7 +425,12 @@ useEffect(() => {
         supportersCache,
         setSupportersCache,
         myComplaints,
-        activity
+        activity,
+        trends,
+        categoryStats,
+        statusDiff,
+        statusPercentages,
+        statusCounts
       }}
     >
       {children}

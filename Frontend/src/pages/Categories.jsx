@@ -1,45 +1,25 @@
+import { useContext } from "react";
 import styles1 from "../styles/Dashboard.module.css";
 import styles from "../styles/Categories.module.css";
 import PriorityBadge from "../components/PriorityBadge";
 import CategoryCard from "../components/CategoryCard";
-import {
-  Droplets,
-  Road,
-  LeafyGreen
-} from "lucide-react";
+import { Droplets, Road, LeafyGreen } from "lucide-react";
+import { AuthContext } from "../context/CreateContext";
 
-const CATEGORIES = [
-  {
-    id: 1,
-    name: "Roads & Streets",
-    count: 210,
-    change: "+12%",
-    trend: "up",
-    accent: "#3b82f6",
+const CATEGORY_CONFIG = {
+  "Roads & Streets": {
+    accent: "black",
     iconBg: "#eff6ff",
-    priority: "High",
-    icon:<Road />,
+    icon: <Road />,
   },
-  {
-    id: 2,
-    name: "Water Supply",
-    count: 180,
-    change: "+8%",
-    trend: "up",
-    accent: "#06b6d4",
+  "Water Supply": {
+    accent: "rgb(22, 131, 232)",
     iconBg: "#ecfeff",
-    priority: "High",
-    icon: <Droplets />
+    icon: <Droplets />,
   },
-  {
-    id: 3,
-    name: "Garbage",
-    count: 156,
-    change: "-5%",
-    trend: "down",
-    accent: "#22c55e",
+  "Garbage": {
+    accent: "rgb(151, 238, 114)",
     iconBg: "#f0fdf4",
-    priority: "Medium",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <polyline points="3 6 5 6 21 6" />
@@ -49,15 +29,9 @@ const CATEGORIES = [
       </svg>
     ),
   },
-  {
-    id: 4,
-    name: "Street Lights",
-    count: 134,
-    change: "+3%",
-    trend: "up",
-    accent: "#f59e0b",
+  "Street Lights": {
+    accent: "rgb(242, 230, 7)",
     iconBg: "#fffbeb",
-    priority: "Medium",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="5" />
@@ -72,15 +46,9 @@ const CATEGORIES = [
       </svg>
     ),
   },
-  {
-    id: 5,
-    name: "Drainage",
-    count: 120,
-    change: "+4%",
-    trend: "up",
-    accent: "#8b5cf6",
+  "Drainage": {
+    accent: "rgb(165, 164, 164)",
     iconBg: "#f5f3ff",
-    priority: "High",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -88,41 +56,23 @@ const CATEGORIES = [
       </svg>
     ),
   },
-  {
-    id: 6,
-    name: "Public Safety",
-    count: 98,
-    change: "-2%",
-    trend: "down",
-    accent: "#ef4444",
+  "Public Safety": {
+    accent: "rgb(240, 12, 12)",
     iconBg: "#fef2f2",
-    priority: "High",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     ),
   },
-  {
-    id: 7,
-    name: "Environment",
-    count: 76,
-    change: "+6%",
-    trend: "up",
-    accent: "#10b981",
+  "Environment": {
+    accent: "rgb(12, 236, 61)",
     iconBg: "#ecfdf5",
-    priority: "Low",
-    icon: <LeafyGreen />
+    icon: <LeafyGreen />,
   },
-  {
-    id: 8,
-    name: "Others",
-    count: 94,
-    change: "+1%",
-    trend: "up",
-    accent: "#6366f1",
+  "Others": {
+    accent: "rgb(189, 134, 6)",
     iconBg: "#eef2ff",
-    priority: "Low",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="1" />
@@ -131,38 +81,85 @@ const CATEGORIES = [
       </svg>
     ),
   },
-];
+};
 
-const TOTAL = CATEGORIES.reduce((sum, c) => sum + c.count, 0);
-
-// ── Stats ──
-const STATS = [
-  { label: "Total Categories", value: "8",   change: null },
-  { label: "Total Complaints", value: "1,248", change: "+12.5%", trend: "up" },
-  { label: "Most Active",      value: "Roads", change: null },
-  { label: "Resolved Rate",    value: "68%",  change: "+4.2%", trend: "up" },
-];
-
-// ── Priority Badge ──
-
-// ── Category Card ─
-// ── Main Component ──
 function Categories() {
+  const { categoryStats, loading } = useContext(AuthContext);
+
+  if (loading || !categoryStats) {
+    return <div className={styles.loading}> Loading categories...</div>;
+  }
+ 
+  const { total, resolvedRate, mostActive, categories } = categoryStats;
+
+  console.log(categories);
+
+  const CATEGORIES = categories.map((cat, i) => 
+{
+  const config = CATEGORY_CONFIG[cat.name] || CATEGORY_CONFIG["Others"];
+
+  return {
+    id:     i + 1,
+    name:   cat.name,         
+    count:  cat.count,
+    trend:  cat.trend,
+    change: `${cat.currentPercent ?? 0}%`, 
+    diff : `${cat.diff < 0 ? `${"-"+" "+Math.abs(cat.diff)}`:`${"+"+" "+cat.diff}`}`,
+    ...config,
+  };
+});
+
+  // Total for percentage calculations
+  const TOTAL = total;
+
+  // ── Top 4 Stats Cards ──
+  const STATS = [
+    {
+      label: "Total Categories",
+      value: categories.length.toString(),
+      change: null,
+    },
+    {
+      label: "Total Complaints",
+      value: total.toLocaleString(),
+      change: null,
+    },
+    {
+      label: "Most Active",
+      value: mostActive,
+      change: null,
+    },
+    {
+      label: "Resolved Rate",
+      value: `${resolvedRate}%`,
+      change: null,
+    },
+  ];
+
   return (
     <div className={`${styles1.categoriesContainer} ${styles.mainContainer}`}>
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Categories</h1>
-        <p className={styles.pageSubtitle}>Browse complaint categories and their statistics</p>
+        <p className={styles.pageSubtitle}>
+          Browse complaint categories and their statistics
+        </p>
       </div>
 
-      {/* Stats Row */}
       <div className={styles.statsRow}>
         {STATS.map((s, i) => (
-          <div className={styles.statCard} key={i} style={{ animationDelay: `${i * 0.07}s` }}>
+          <div
+            className={styles.statCard}
+            key={i}
+            style={{ animationDelay: `${i * 0.07}s` }}
+          >
             <span className={styles.statLabel}>{s.label}</span>
             <span className={styles.statValue}>{s.value}</span>
             {s.change && (
-              <span className={`${styles.statChange} ${s.trend === "up" ? styles.up : styles.down}`}>
+              <span
+                className={`${styles.statChange} ${
+                  s.trend === "up" ? styles.up : styles.down
+                }`}
+              >
                 {s.trend === "up" ? "▲" : "▼"} {s.change} from last month
               </span>
             )}
@@ -170,15 +167,14 @@ function Categories() {
         ))}
       </div>
 
-      {/* Category Cards */}
       <h2 className={styles.sectionTitle}>All Categories</h2>
       <div className={styles.categoryGrid}>
         {CATEGORIES.map((cat) => (
-          <CategoryCard key={cat.id} cat={cat} total={TOTAL}/>
+          <CategoryCard key={cat.id} cat={cat} total={TOTAL} />
         ))}
       </div>
 
-      {/* Overview Table */}
+      {/* ── Overview Table ── */}
       <div className={styles.overviewSection}>
         <h2 className={styles.overviewTitle}>Category Overview</h2>
         <table className={styles.overviewTable}>
@@ -193,39 +189,40 @@ function Categories() {
           </thead>
           <tbody>
             {CATEGORIES.map((cat) => {
-              const percent = Math.round((cat.count / TOTAL) * 100);
+              // ✅ Share % = (category count / total complaints) * 100
+              const percent = TOTAL > 0
+                ? Math.round((cat.count / TOTAL) * 100)
+                : 0;
+
               return (
                 <tr key={cat.id}>
-                  {/* Name */}
                   <td>
                     <div className={styles.dotLabel}>
-                      <span className={styles.dot} style={{ background: cat.accent }} />
+                      <span
+                        className={styles.dot}
+                        style={{ background: cat.accent }}
+                      />
                       {cat.name}
                     </div>
                   </td>
-
-                  {/* Count */}
                   <td>
                     <div className={styles.tableBar}>
                       <div className={styles.tableBarBg}>
                         <div
                           className={styles.tableBarFill}
-                          style={{ width: `${percent}%`, background: cat.accent }}
+                          style={{
+                            width: `${percent}%`,
+                            background: cat.accent,
+                          }}
                         />
                       </div>
                       <span className={styles.tableCount}>{cat.count}</span>
                     </div>
                   </td>
-
-                  {/* Share % */}
                   <td>{percent}%</td>
-
-                  {/* Priority */}
                   <td>
-                    <PriorityBadge priority={cat.priority} />
+                    <PriorityBadge percent={percent}/>
                   </td>
-
-                  {/* Trend */}
                   <td>
                     <span
                       style={{
@@ -234,7 +231,7 @@ function Categories() {
                         fontSize: 13,
                       }}
                     >
-                      {cat.trend === "up" ? "▲" : "▼"} {cat.change}
+                      {cat.trend === "up" ? "▲" : "▼"} {cat.diff}
                     </span>
                   </td>
                 </tr>
@@ -243,7 +240,6 @@ function Categories() {
           </tbody>
         </table>
       </div>
-
     </div>
   );
 }

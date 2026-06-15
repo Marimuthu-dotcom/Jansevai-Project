@@ -20,11 +20,12 @@
   background-color: white;
   position: relative;
   border-radius: 15px;
+  height: 100%;
 }
 .sideBar{
     position: sticky;   /* 👈 fixed inside layout */
     top: 0;
-    max-height: 107vh;
+    max-height: 110vh;
     background-color: white;
     display:flex;
     flex-direction: column;
@@ -69,6 +70,7 @@
     font-size: 18px;
     transition: all 0.3s ease;
 }
+
 .navItem:hover
 {
   background: linear-gradient(135deg, #b30404, #ff0000);

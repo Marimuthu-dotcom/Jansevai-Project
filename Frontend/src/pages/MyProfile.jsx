@@ -194,21 +194,33 @@ const getDotColor = (status) => {
 const getIconColor = (title) => {
   const category = title.trim().toLowerCase();
 
-  if (category.includes("watersupply")) return "#3fb3ed";
-  if (category.includes("garbage")) return "#0af962";
-  if (category.includes("street")) return "#ffe100";
-  if (category.includes("road&safety")) return "#a855f7";
-  if (category.includes("publicsafety")) return "#ea0808";
-  if (category.includes("other")) return "#1a1a1a";
-  if (category.includes("environment")) return "#00ff22";
-  if (category.includes("drainage")) return "#424242";
+  if (category.includes("watersupply")) 
+    return "#3fb3ed";
+  if (category.includes("garbage")) 
+    return "#0af962";
+  if (category.includes("street")) 
+    return "#ffe100";
+  if (category.includes("road&safety")) 
+    return "#a855f7";
+  if (category.includes("publicsafety")) 
+    return "#ea0808";
+  if (category.includes("other")) 
+    return "#1a1a1a";
+  if (category.includes("environment")) 
+    return "#00ff22";
+  if (category.includes("drainage")) 
+    return "#424242";
 }
 
 const getStatus = (status) => {
-  if(status === "Pending") return "Complaint Submitted";
-  if(status === "In Progress") return "Complaint In Progress";
-  if(status === "Resolved") return "Complaint Resolved";
+  if(status === "Pending") 
+    return "Complaint Submitted";
+  if(status === "In Progress") 
+    return "Complaint In Progress";
+  if(status === "Resolved") 
+    return "Complaint Resolved";
 }
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.layout}>

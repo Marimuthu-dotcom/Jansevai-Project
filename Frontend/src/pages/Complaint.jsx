@@ -99,14 +99,6 @@ function Complaints() {
   const navigate = useNavigate();
   const { handleLogout } = useOutletContext();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-
-    if (search.trim()) {
-      navigate(`/complaint?search=${search}`);
-    }
-  };
-
   const filtered = useMemo(() => {
     return complaints.filter((c) => {
       const categoryMatch =
@@ -121,26 +113,8 @@ function Complaints() {
     <div className={styles1.complaintContainer}>
       <div className={styles1.dashboardHeader}>
               <div className={styles1.searchDiv}>
-                <form
-              onSubmit={handleSearch}
-              className={styles1.searchForm}
-            >
-              <input
-                type="text"
-                placeholder="Search complaint..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={styles1.searchInput}
-              />
-      
-              <button
-                type="submit"
-                className={styles1.searchBtn}
-              >
-                Search
-              </button>
-            </form>
-              </div>
+                <h2>Complaints</h2>
+                </div>
       
             <div className={styles1.profileDiv}>
               <div className={styles1.notificationDiv}>
@@ -186,8 +160,6 @@ function Complaints() {
             </div>
             </div>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Complaints</h1>
-
         {/* Filters */}
         <div className={styles.filterBar}>
           {/* Category Dropdown */}

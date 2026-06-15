@@ -3,7 +3,7 @@
 .pageHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;

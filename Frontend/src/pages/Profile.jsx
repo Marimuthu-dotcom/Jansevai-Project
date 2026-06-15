@@ -10,15 +10,45 @@ import axios from "axios";
 const getIconColor = (title) => {
   const category = title.trim().toLowerCase();
 
-  if (category.includes("watersupply")) return "#3fb3ed";
-  if (category.includes("garbage")) return "#0af962";
-  if (category.includes("street")) return "#ffe100";
-  if (category.includes("road&safety")) return "#a855f7";
-  if (category.includes("publicsafety")) return "#ea0808";
-  if (category.includes("other")) return "#1a1a1a";
-  if (category.includes("environment")) return "#00ff22";
-  if (category.includes("drainage")) return "#424242";
+  if (category.includes("watersupply")) 
+    return "#3fb3ed";
+  if (category.includes("garbage")) 
+    return "#0af962";
+  if (category.includes("street")) 
+    return "#ffe100";
+  if (category.includes("road&safety")) 
+    return "#a855f7";
+  if (category.includes("publicsafety")) 
+    return "#ea0808";
+  if (category.includes("other")) 
+    return "#1a1a1a";
+  if (category.includes("environment")) 
+    return "#00ff22";
+  if (category.includes("drainage")) 
+    return "#424242";
 };
+
+const getDotColor = (status) => {
+  switch (status) {
+    case "Pending":
+      return "#ffc107";
+    case "In Progress":
+      return "#007bff";
+    case "Resolved":
+      return "#28a745";
+    default:
+      return "#6c757d";
+  }
+};
+
+const getStatus = (status) => {
+  if(status === "Pending") 
+    return "Complaint Submitted";
+  if(status === "In Progress") 
+    return "Complaint In Progress";
+  if(status === "Resolved") 
+    return "Complaint Resolved";
+}
 
 const getTimeAgo = (createdAt) => {
   const now = new Date();
@@ -72,6 +102,7 @@ function Profile() {
   const location   = useLocation();
   const member = location.state?.member;
   const [memberComplaints, setMemberComplaints] = useState([]);
+  const [memberActivity,setMemberActivity] = useState([]);
   const api = import.meta.env.VITE_API_URL;
 
   if (!member) {
@@ -96,6 +127,12 @@ function Profile() {
 
          setMemberComplaints(res.data);
          console.log("Fetched member complaints:", res.data);
+
+         const activityRes = await axios.get(
+            `${api}/api/auth/member-activity/${userEmail}`
+         );
+
+         setMemberActivity(activityRes.data);
 
       } catch (err) {
          console.log(err);
@@ -314,15 +351,26 @@ function Profile() {
               <h3 className={styles.sectionTitle}>Recent Activity</h3>
             </div>
             <div className={styles.activityList}>
-              {STATIC_ACTIVITY.map((a) => (
-                <div key={a.id} className={styles.activityItem}>
-                  <div className={styles.activityDot} style={{ background: a.color }} />
+              {memberActivity.length > 0 ?
+              (memberActivity.map((a,i) => (
+                <div key={i} className={styles.activityItem}>
+                  <div className={styles.activityDot} style={{ background: getDotColor(a.status) }} />
                   <span className={styles.activityText}>
-                    <strong>{a.action}</strong> — {a.detail}
+                    <strong>{getStatus(a.status)}</strong> — {a.title}
                   </span>
-                  <span className={styles.activityTime}>{a.time}</span>
+                  <span className={styles.activityTime}>{getTimeAgo(a.updated_at)}</span>
                 </div>
-              ))}
+              ))):
+              (
+               <div className={styles1.emptyState}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <circle cx="11" cy="11" r="8" />
+                              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            <p>No recent complaints found.</p>
+                </div> 
+              )
+            }
             </div>
           </div>
 

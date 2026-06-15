@@ -12,7 +12,7 @@ body{
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  zoom: 0.93;
+  zoom: 0.9;
 }
 
 #root{

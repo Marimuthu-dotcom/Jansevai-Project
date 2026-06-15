@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, ThumbsUp } from "lucide-react";
+import { Heart, MessageCircle, ThumbsUp ,ChevronDown, ChevronUp} from "lucide-react";
 import GetAvatarColor from "../components/GetAvatarColor.jsx";
 import styles from "../styles/ComplaintDetails.module.css";
 import { AuthContext } from "../context/CreateContext";
@@ -27,14 +27,19 @@ function getTimelineState(status, label) {
   };
   const current = statusOrder[status] || 1;
   const step    = order[label];
-  if (step <  current) return "done";
-  if (step === current) return "active";
+
+  if (step <  current) 
+    return "done";
+  if (step === current) 
+    return "active";
   return "pending";
 }
 
 function dotClass(state, styles) {
-  if (state === "done")   return styles.dotDone;
-  if (state === "active") return styles.dotActive;
+  if (state === "done")   
+    return styles.dotDone;
+  if (state === "active") 
+    return styles.dotActive;
   return styles.dotPending;
 }
 
@@ -172,8 +177,10 @@ function ComplaintDetails() {
 
     if (!file) 
       return;
+
     setResolvedImage(file);
     setStatusLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("status", "Resolved");
@@ -184,10 +191,14 @@ function ComplaintDetails() {
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setCurrentStatus("Resolved");
-    } catch (err) {
-      console.log(err);
-    } finally {
+    } 
+    catch (err) 
+    {
+      console.log("Error:",err);
+    } finally 
+    {
       setStatusLoading(false);
     }
   };
@@ -208,6 +219,7 @@ function ComplaintDetails() {
   };
 
 const [showAllComments, setShowAllComments] = useState(false);
+const [showProof,setShowProof] = useState(true);
 
 // Derive — 2 or all
 const visibleComments = showAllComments ? comments : comments.slice(0, 2);
@@ -286,16 +298,39 @@ const hiddenCount     = comments.length - 2;
               <p className={styles.sectionLabel}>Description</p>
               <p className={styles.description}>{complaint.description}</p>
 
-              {currentStatus === "Resolved" && complaint.resolved_image && (
-                <div style={{ marginTop: 12 }}>
-                  <p className={styles.sectionLabel}>Resolution Proof</p>
-                  <img
-                    src={complaint.resolved_image}
-                    alt="Resolved"
-                    style={{ width: "100%", borderRadius: 10, marginTop: 6 }}
-                  />
+              {currentStatus === "Resolved" && complaint.resolved_url && (
+              <div style={{ marginTop: 12 }}>
+                
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => setShowProof(prev => !prev)}
+                >
+                  <p className={styles.proofLabel}>Resolution Proof</p>
+
+                  <span style={{ fontSize: "20px" }}>
+                    {showProof ? <ChevronUp/> : <ChevronDown />}
+                  </span>
                 </div>
-              )}
+
+                {showProof && (
+                  <img
+                    src={complaint.resolved_url}
+                    alt="Resolved"
+                    className={styles.mainImg}
+                    style={{
+                      width: "100%",
+                      borderRadius: "10px",
+                      marginTop: "20px"
+                    }}
+                  />
+                )}
+              </div>
+            )}
 
               <div className={styles.actionBar}>
                 <button
@@ -473,7 +508,7 @@ const hiddenCount     = comments.length - 2;
               {currentStatus === "Resolved" && (
                 <div className={styles.resolvedMsg}>This complaint is resolved!</div>
               )}
-            </div>
+                          </div>
             <input
               ref={fileInputRef}
               type="file"
