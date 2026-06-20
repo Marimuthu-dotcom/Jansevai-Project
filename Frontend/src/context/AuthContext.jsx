@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [statusDiff,setStatusDiff] = useState(null);
   const [statusPercentages,setStatusPercentages] = useState(null);
   const [statusCounts, setStatusCounts] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,6 +101,23 @@ export const AuthProvider = ({ children }) => {
         console.log(snapshotRes.data.percentages); 
         console.log(snapshotRes.data.counts);
 
+      const categoryTrends = await axios.get(
+        `${api}/api/auth/category-trends`,
+          { headers: 
+            { Authorization: `Bearer ${token}` } 
+          }
+        );
+
+        setTrends(categoryTrends.data);
+
+        const notifRes = await axios.get(
+          `${api}/api/auth/notifications`,
+          { headers: 
+            { Authorization: `Bearer ${token}` } 
+          }
+        );
+        setNotifications(notifRes.data);
+  
       } 
       catch (err) {
         console.log("Error:",err);
@@ -110,6 +128,65 @@ export const AuthProvider = ({ children }) => {
 
     fetchData();
   }, [token]);
+
+  useEffect(() => {
+  if (user?.id) {
+    socket.emit("join-room", user.id); // ✅ You need to create a room after logging in.
+  }
+}, [user?.id]);
+
+  // AuthProvider.jsx
+useEffect(() => 
+{
+  socket.on("complaint-deleted", (data) =>
+    {
+    setComplaints((prev) => prev.filter((c) => c.id !== data.complaintId));
+    setMyComplaints((prev) => prev.filter((c) => c.id !== data.complaintId));
+    setStatusDiff(data.diff);
+    setStatusPercentages(data.percentages); 
+    setStatusCounts(data.counts);
+    setTrends(data.trends);
+    console.log(data.trends)
+
+    if (data.categoryData) 
+    {
+    setCategoryStats((prev) => 
+    {
+      if (!prev) 
+        return prev;
+
+      const updatedCategories = prev.categories.map((cat) => 
+      {
+        const updated = data.categoryData[cat.name];
+
+        if (!updated) 
+          return cat;
+
+        return {
+          ...cat,
+          count: updated.count,
+          currentPercent: updated.currentPercent,
+          prevPercent:    updated.prevPercent,
+          diff:           updated.diff,
+          trend:          updated.trend,
+        };
+      });
+
+      return { 
+      ...prev,
+      total: data.newTotal,
+      resolvedRate: data.resolvedRate,
+      mostActive: data.mostActiveCategory, 
+      complaintDiff: data.complaintTotal,
+      complaintTrend:data.complaintTrend,
+      categories: updatedCategories
+    };
+    });
+  }
+  });
+
+  return () => socket.off("complaint-deleted");
+}, []);
 
   useEffect(() => {
 
@@ -258,11 +335,17 @@ useEffect(() => {
 
 useEffect(() => {
 
-  const handleComplaint = ({complaint,trends,
+  const handleComplaint = ({
+    complaint,
+    trends,
     categoryData,
     total,
     resolvedRate,
-    mostActiveCategory}) => {
+    complaintTotal,
+    complaintTrend,
+    mostActiveCategory,
+    newActivity
+    }) => {
 
     setComplaints(prev => [
       complaint,
@@ -300,7 +383,10 @@ useEffect(() => {
       total: total,
       resolvedRate: resolvedRate,
       mostActive: mostActiveCategory, 
-      categories: updatedCategories };
+      complaintDiff: complaintTotal,
+      complaintTrend,
+      categories: updatedCategories
+    };
     });
   }
 
@@ -312,6 +398,8 @@ useEffect(() => {
       ]);
 
     }
+
+    setActivity((prev) => [newActivity, ...prev]);
   };
 
   const handlePendingUpdate = (data) => {
@@ -390,7 +478,50 @@ useEffect(() => {
   console.log(data.diff);
   console.log(data.percentages); 
   console.log(data.counts);
-  
+
+  if (data.status === "Resolved") {
+  setCategoryStats(prev => {
+    if (!prev) 
+      return prev;
+
+    return {
+      ...prev,
+      resolvedRate: data.resolvedRate,
+      resolvedDiff: data.resolvedDiff,
+      resolvedTrend: data.resolvedTrend
+    };
+  });
+}
+
+
+ setActivity((prev) => {
+      const exists = prev.some((a) => a.id === data.complaintId);
+
+      if (exists) {
+        // Already இருக்கு — status மாத்து
+        return prev.map((a) =>
+          a.id === data.complaintId
+            ? { ...a, status: data.status, updated_at: new Date().toISOString() }
+            : a
+        );
+      }
+
+      // Activity list-ல இல்ல — own complaint-ஆ இருந்தா புதுசா add பண்ணு
+      if (data.complaintTitle && data.userEmail === user?.email) {
+        return [
+          {
+            id:         data.complaintId,
+            title:      data.complaintTitle,
+            status:     data.status,
+            updated_at: new Date().toISOString(),
+          },
+          ...prev,
+        ];
+      }
+
+      return prev; // வேற யாருக்கோ உள்ள complaint — touch பண்ணாதே
+    });
+
   };
   socket.on("status-updated", handleStatusUpdate);
   return () => socket.off("status-updated", handleStatusUpdate);
@@ -430,12 +561,15 @@ useEffect(() => {
         categoryStats,
         statusDiff,
         statusPercentages,
-        statusCounts
+        statusCounts,
+        notifications,
+        setNotifications
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 

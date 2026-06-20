@@ -7,6 +7,7 @@ import socket from "../socket/socket.js";
 
 function MemberCard({ member }) {
    const navigate = useNavigate();
+   console.log(member);
 
    useEffect(() => {
    socket.on("new-member", (data) => {

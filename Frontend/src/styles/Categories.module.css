@@ -37,6 +37,7 @@
   flex-direction: column;
   gap: 12px;
   animation: fadeUp 0.3s ease both;
+  position: relative;
 }
 
 .statLabel {
@@ -53,16 +54,21 @@
 }
 
 .statChange {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 3px;
+  padding: 4px 6px;
+  border-radius: 15px;
+  position: absolute;
+  right: 15px;
+  bottom: 12px;
 }
 .statChange.up  
- { color: #16a34a; }
+ { background: #dcfce7;color: #16a34a; }
 .statChange.down 
-{ color: #e02020; }
+{ background: #fee2e2;color: #e02020; }
 
 /* ── Section Title ── */
 .sectionTitle {

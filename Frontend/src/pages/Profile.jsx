@@ -8,7 +8,7 @@ import styles1 from "../styles/RecentComplaints.module.css";
 import axios from "axios";
 
 const getIconColor = (title) => {
-  const category = title.trim().toLowerCase();
+  const category = title.trim().toLowerCase().replace(/\s+/g, "");
 
   if (category.includes("watersupply")) 
     return "#3fb3ed";
@@ -114,6 +114,8 @@ function Profile() {
       </div>
     );
   }
+
+  console.log(member);
 
   useEffect(() => {
 
@@ -279,20 +281,20 @@ function Profile() {
           {/* ── Stats Mini Grid — ✅ Dynamic from member ── */}
           <div className={styles.statsGrid}>
             <div className={styles.statMini}>
-              <span className={styles.statMiniNum}>{member.contributions + member.reported + member.resolved}</span>
+              <span className={styles.statMiniNum}>{memberComplaints.length}</span>
               <span className={styles.statMiniLabel}>Total Complaints</span>
             </div>
             <div className={styles.statMini}>
-              <span className={styles.statMiniNum}>{member.resolved}</span>
+              <span className={styles.statMiniNum}>{memberComplaints.filter(s => s.status === "Resolved").length}</span>
               <span className={styles.statMiniLabel}>Resolved</span>
             </div>
             <div className={styles.statMini}>
-              <span className={styles.statMiniNum}>{member.contributions}</span>
+              <span className={styles.statMiniNum}>{memberComplaints.filter(s => s.status === "In Progress").length}</span>
               <span className={styles.statMiniLabel}>In Progress</span>
             </div>
             <div className={styles.statMini}>
               <span className={styles.statMiniNum}>
-                {member.reported}
+                {memberComplaints.filter(s => s.status === "Pending").length}
               </span>
               <span className={styles.statMiniLabel}>Pending</span>
             </div>

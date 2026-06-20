@@ -1,7 +1,7 @@
 import { useState,useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/Dashboard.module.css";
-import { Bell,ChevronDown,SearchXIcon,TrendingUp,TrendingDown,Minus} from "lucide-react";
+import { Bell,ChevronDown} from "lucide-react";
 import water from "../assets/plumbing-maintenance.png";
 import drainage from "../assets/pollution.png";
 import road from "../assets/road.png";
@@ -62,8 +62,9 @@ function Dashboard() {
   return `${minutes}m`;
 };
 
-console.log(statusDiff);
-console.log(statusPercentages);
+console.log(complaints);
+console.log(loading);
+console.log(trends);
 
 const totalComplaints  = statusCounts?.total      ?? complaints?.length ?? 0;
 const pendingCount     = statusCounts?.pending     ?? complaints?.filter(c => c.status === "Pending").length     ?? 0;

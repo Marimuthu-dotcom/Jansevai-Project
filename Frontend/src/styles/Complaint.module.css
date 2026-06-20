@@ -121,6 +121,10 @@
 /* Card Body */
 .cardBody {
   padding: 14px 16px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .cardTop {
@@ -202,7 +206,7 @@
   font-size: 13px;
   font-weight: 600;
   color: #e02020;
-  background: #fff0f0;
+  background: transparent;
   padding: 2px;
   border-radius: 4px;
   margin-bottom: 6px;
@@ -258,4 +262,30 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+.deleteBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: #686767;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 13px;
+  right: 20px;
+}
+.deleteBtn svg{
+  width: 16px;
+  height: 16px;
+}
+.deleteBtn:hover {
+  background: #fee2e2;
+  color: #e02020;
+}
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

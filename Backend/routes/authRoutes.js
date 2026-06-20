@@ -23,7 +23,11 @@ const { registerUser ,
      getMemberActivities,
      getCategories,
      getStatusSnapshot,
-     getCategoryTrends
+     getCategoryTrends,
+     deleteComplaint,
+     getNotification,
+     readNotification,
+     readAllNotification
   } = require("../controller/authController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const upload = require("../upload/uploadMiddleware");
@@ -51,6 +55,11 @@ router.get("/supporters/:id",getSupporters);
 router.get("/my-activities",verifyToken,getActivities);
 router.get("/category-stats", verifyToken, getCategories);
 router.get("/status-snapshot",verifyToken,getStatusSnapshot);
+router.get("/category-trends",verifyToken,getCategoryTrends);
+router.delete("/deleteComplaint/:id", verifyToken, deleteComplaint);
+router.get("/notifications", verifyToken,getNotification);
+router.put("/read-all", verifyToken,readAllNotification);
+router.put("/:id/read", verifyToken,readNotification);
 
 module.exports = router;
 

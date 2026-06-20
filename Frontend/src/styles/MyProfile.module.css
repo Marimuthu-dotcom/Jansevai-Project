@@ -232,7 +232,7 @@
 }
 .infoIcon svg { width: 15px; height: 15px; color: #e02020; }
 
-.infoText { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.infoText { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
 
 .infoLabel {
   font-size: 10px;

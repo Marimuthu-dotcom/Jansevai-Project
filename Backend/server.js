@@ -26,6 +26,11 @@ app.use("/uploads",express.static(path.join(__dirname, "uploads")));
 
 io.on("connection", (socket) => {
    console.log("User Connected:", socket.id);
+
+   socket.on("join-room", (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined room`);
+  });
    
    socket.on("disconnect", () => {
       console.log("User Disconnected");

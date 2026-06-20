@@ -1,4 +1,4 @@
-import { Heart, MessageCircle} from "lucide-react";
+import { Heart, MessageCircle, Trash2} from "lucide-react";
 import styles from "../styles/Complaint.module.css";
 import StatusBadge from "../components/StatusBadge";
 import { useNavigate } from "react-router-dom";
@@ -11,8 +11,34 @@ function ComplaintCard({ complaint }) {
  const navigate = useNavigate();
 const [liked, setLiked] = useState(complaint.isLiked);
 const [likes, setLikes] = useState(complaint.likes_count);
+const [deleting, setDeleting] = useState(false); 
  const { token } = useContext(AuthContext);
  const api = import.meta.env.VITE_API_URL;
+
+ const handleDelete = async (e) => {
+    e.stopPropagation(); 
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this complaint?"
+    );
+    if (!confirmDelete) 
+      return;
+
+    setDeleting(true);
+
+    try {
+      await axios.delete(
+        `${api}/api/auth/deleteComplaint/${complaint.id}`,
+        { headers: 
+          { Authorization: `Bearer ${token}` } 
+        }
+      );
+    } catch (err) {
+      console.log(err);
+      alert(err.response?.data?.message || "Failed to delete");
+      setDeleting(false);
+    }
+  };
 
  const handleLike = async (e) => {
    e.stopPropagation();
@@ -46,7 +72,8 @@ const handleCardClick = () => {
   };
 
   return (
-    <div className={styles.card} onClick={handleCardClick} style={{animationDelay: `${complaint.id * 0.05}s`}}>
+    <div className={styles.card} onClick={handleCardClick} style={{animationDelay: `${(complaint.id-49) * 0.2}s`,opacity: deleting ? 0.5 : 1, // ✅ delete ஆகும்போது fade
+        pointerEvents: deleting ? "none" : "auto"}}>
       {complaint.image_url ? (
         <img
           src={complaint.image_url}
@@ -65,6 +92,14 @@ const handleCardClick = () => {
 
       <div className={styles.cardBody}>
         <span className={styles.categoryTag}>{complaint.category}</span>
+        <button
+              className={styles.deleteBtn}
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Delete complaint"
+            >
+              <Trash2 size={20} />
+            </button>
 
         <div className={styles.cardTop}>
           <h3 className={styles.cardTitle}>{complaint.title}</h3>

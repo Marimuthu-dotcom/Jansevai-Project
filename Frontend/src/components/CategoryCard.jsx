@@ -26,7 +26,7 @@ function CategoryCard({ cat, total }) {
       <div className={styles.progressBarBg}>
         <div
           className={styles.progressBarFill}
-          style={{ width: `${percent}%` }}
+          style={{ width: `${percent||0}%` }}
         />
       </div>
     </div>

@@ -75,10 +75,15 @@ exports.googleLogin = async (req, res) => {
 
     const { token } = req.body;
 
+    console.log("1. Token received:", token ? "YES" : "NO");
+    console.log("2. Token preview:", token?.slice(0, 30))
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID
     });
+
+    console.log("3. Ticket verified ✅");
 
     const payload = ticket.getPayload();
 
@@ -110,14 +115,19 @@ exports.googleLogin = async (req, res) => {
       {
         expiresIn: "7d"
       }
+
     );
+
+    console.log("7. JWT created ✅");
 
     res.status(200).json({
       token: jwtToken
     });
 
   } catch (err) {
-
+    
+    console.log("❌ EXACT ERROR:", err.message);
+    console.log("❌ ERROR NAME:", err.name);
     console.log(err);
 
     res.status(500).json({
@@ -500,11 +510,17 @@ exports.createComplaint = async (req, res) => {
                       WHERE category = ?
                       `,
                       [category]
-                      );
+                      ); 
 
    const oldCount = oldData.count; 
 
+   const [[totalComplaint]] = await db.promise().query(
+                      `
+                      SELECT COUNT(*) AS count
+                      FROM complaints`
+                      );
 
+   console.log("PrevTotal:",totalComplaint.count);
 
    await db.promise().query(
   `
@@ -702,6 +718,8 @@ await db.promise().query(
       `SELECT COUNT(*) AS total FROM complaints`
     );
 
+    console.log("updateTotal :",total);
+
     const [[{ resolved }]] = await db.promise().query(
       `SELECT COUNT(*) AS resolved FROM complaints WHERE status = 'Resolved'`
     );
@@ -711,6 +729,10 @@ await db.promise().query(
     const [categoryRows] = await db.promise().query(
       `SELECT category, COUNT(*) AS count FROM complaints GROUP BY category`
     );
+
+    const complaintTotal = total - totalComplaint.count;
+    
+    const complaintTrend = complaintTotal > 0 ? "up" : complaintTotal < 0 ?  "down" : null 
 
     let mostActiveCategory = "None";
 
@@ -739,13 +761,40 @@ await db.promise().query(
     updatedSnaps.forEach((s) => {
       categoryData[s.category] = {
         currentPercent: parseFloat(s.current_percent || 0),
-        prevPercent:    parseFloat(s.prev_percent    || 0),
+        prevPercent87Y:    parseFloat(s.prev_percent    || 0),
         diff:           parseFloat(s.diff            || 0),
         trend:          s.trend || "stable",
         count:          countMap[s.category],
       };
     });
     
+    const newActivity  = {
+      id:         result.insertId,
+      title,
+      status:     "Pending",
+      updated_at: new Date(),
+    }
+
+      const [allUsers] = await db.promise().query(
+        `SELECT id FROM users WHERE email != ?`, [userEmail]
+      );
+
+      for (const u of allUsers) {
+
+        await db.promise().query(
+          `INSERT INTO notifications 
+          (receiver_id, sender_name, type, title, description)
+          VALUES (?, ?, ?, ?, ?)`,
+          [
+            u.id,
+            username,
+            "complaint",
+            "New complaint submitted",
+            `${username} reported: ${title}`
+          ]
+        );
+      }
+
    res.status(201).json({ message:"Complaint created successfully"} );
 
     const io = getIo();
@@ -755,8 +804,12 @@ await db.promise().query(
     trends ,
     categoryData ,
     total,
+    complaintTotal,
+    complaintTrend,
     resolvedRate,
-    mostActiveCategory});
+    mostActiveCategory,
+    newActivity
+  });
 
     /* io.emit("category-stats-updated", { 
     categoryData,
@@ -779,6 +832,15 @@ await db.promise().query(
       percentages: newSnapshot,
       diff,
     });
+
+    io.emit("new-notification", {
+        sender_name: username,
+        type:        "complaint",
+        title:       "New complaint submitted",
+        description: `${username} reported: ${title}`,
+        is_read:     false,
+        created_at:  new Date()
+      });
     console.log("Emitted Complaint:", newComplaint);
 
   }
@@ -828,7 +890,7 @@ exports.getComplaints = async (req, res) => {
       ON c.id = cl.complaint_id
       AND cl.user_email = ?
 
-      ORDER BY c.created_at DESC
+      ORDER BY c.created_at ASC
     `;
 
     const [result] =
@@ -1072,9 +1134,43 @@ exports.addComment = async (req, res) => {
       created_at: new Date()
     };
 
+    // addComment controller-ல
+const [[info]] = await db.promise().query(
+  `SELECT u.id AS posterId, c.title
+   FROM complaints c
+   JOIN users u ON c.user_email = u.email
+   WHERE c.id = ?`,
+  [complaintId]
+);
+
+// Own comment-க்கு notify வேண்டாம்
+if (info.posterId !== req.user.id) {
+  await db.promise().query(
+    `INSERT INTO notifications
+     (receiver_id, sender_name, type, title, description)
+     VALUES (?, ?, ?, ?, ?)`,
+    [
+      info.posterId,
+      username,
+      "comment",
+      "New Comment",
+      `${username} commented on "${info.title}"`
+    ]
+  );
+}
+
     const io = getIo();
     
     io.emit("new-comment", newComment);
+    
+    io.to(`user_${info.posterId}`).emit("new-notification", {
+    sender_name: username,
+    type:        "comment",
+    title:       "New Comment",
+    description: `${req.user.username} commented on "${info.title}"`,
+    is_read:     false,
+    created_at:  new Date()
+  });
 
     res.status(201).json(newComment);
 
@@ -1105,6 +1201,7 @@ exports.getComments = async (req,res) => {
 exports.updateStatus = async (req, res) => {
   const { id }  = req.params;
   const userEmail  = req.user.email;
+  const username = req.user.username;
   
   try {
     // Already support பண்ணிருக்காரா check
@@ -1175,6 +1272,33 @@ exports.updateStatus = async (req, res) => {
       `SELECT support_count FROM complaints WHERE id = ?`, [id]
     );
 
+    const [[info]] = await db.promise().query(
+      `SELECT 
+         u.id       AS posterId,
+         u.username AS posterName,
+         c.title
+       FROM complaints c
+       JOIN users u ON c.user_email = u.email
+       WHERE c.id = ?`,
+      [id]
+    );
+
+    // updateStatus (support) controller-ல
+    if (info.posterId !== req.user.id) {
+    await db.promise().query(
+      `INSERT INTO notifications
+      (receiver_id, sender_name, type, title, description)
+      VALUES (?, ?, ?, ?, ?)`,
+      [
+        info.posterId,
+        username,
+        "support",
+        "New Support",
+        `${username} supported your complaint "${info.title}"`
+      ]
+    );
+  }
+
      const io = getIo(); 
      
     io.emit("support-updated", {
@@ -1183,6 +1307,14 @@ exports.updateStatus = async (req, res) => {
       supporters,
       userEmail,
       action:       "added"
+    });
+
+    io.to(`user_${info.posterId}`).emit("new-notification", {
+      type:        "support",
+      title:       "New Support",
+      description: `${username} supported your complaint`,
+      is_read:     false,
+      created_at:  new Date()
     });
 
     res.json({ message: "Supported", supported: true });
@@ -1199,6 +1331,7 @@ exports.resolvedImage =  async (req, res) => {
   const { id }     = req.params;
   const { status } = req.body;
   const userEmail     = req.user.email;
+  const username = req.user.username;
 
   try {
 
@@ -1214,6 +1347,8 @@ exports.resolvedImage =  async (req, res) => {
     const [[{ resolved }]] = await db.promise().query(
       `SELECT COUNT(*) AS resolved FROM complaints WHERE status = 'Resolved'`
     );
+
+    const prevResolvedrate = total > 0 ? Math.round((resolved/total) * 100) : 0;
 
     const prevSnapshot = {
       total,
@@ -1255,6 +1390,7 @@ exports.resolvedImage =  async (req, res) => {
          WHERE id = ?`,
         [status, resolvedImage, id]
       );
+
     } 
     else
    {
@@ -1310,6 +1446,50 @@ exports.resolvedImage =  async (req, res) => {
   newSnapshot.resolved
 ]);
 
+const [[{ total: updatedTotal }]] = await db.promise().query(
+      `SELECT COUNT(*) AS total FROM complaints`
+    );
+
+    const [[{ resolved : updatedResolved }]] = await db.promise().query(
+      `SELECT COUNT(*) AS resolved FROM complaints WHERE status = 'Resolved'`
+    );
+
+    const resolvedRate = updatedTotal > 0 ? Math.round((updatedResolved / updatedTotal) * 100) : 0;
+
+    const resolvedDiff = resolvedRate - prevResolvedrate  ; // 25.00 - 12.5
+
+    const resolvedTrend =
+    resolvedDiff > 0 ? "up" :
+    resolvedDiff < 0 ? "down" :
+    null;  // up
+
+    console.log(updatedTotal);
+    console.log(updatedResolved);
+    console.log(resolvedRate);
+
+    // resolvedImage controller-ல
+    const [[complaintInfo]] = await db.promise().query(
+      `SELECT u.id AS posterId, u.username AS posterName, c.title
+      FROM complaints c
+      JOIN users u ON c.user_email = u.email
+      WHERE c.id = ?`,
+      [id]
+    );
+
+    await db.promise().query(
+      `INSERT INTO notifications
+      (receiver_id, sender_name, type, title, description)
+      VALUES (?, ?, ?, ?, ?)`,
+      [
+        complaintInfo.posterId,
+        username,
+        "status",
+        "Status Updated",
+        `Your complaint "${complaintInfo.title}" is now ${status}`
+      ]
+    );
+
+
     const io = getIo();
 
     io.emit("status-updated", {
@@ -1324,6 +1504,19 @@ exports.resolvedImage =  async (req, res) => {
       },
       percentages: newSnapshot,
       diff,
+      resolvedRate, // 25.00
+      resolvedDiff, // 12.5
+      resolvedTrend // up
+    });
+
+    // Specific user-க்கு மட்டும் notify
+    io.to(`user_${complaintInfo.posterId}`).emit("new-notification", {
+      sender_name: username,
+      type:        "status",
+      title:       "Status Updated",
+      description: `Your complaint "${complaintInfo.title}" is now ${status}`,
+      is_read:     false,
+      created_at:  new Date()
     });
 
     res.json({ message: "Status updated" });
@@ -1598,13 +1791,13 @@ async function updateCategorySnapshots() {
   // Total count
   const [[{ total }]] = await db.promise().query(
     `SELECT COUNT(*) AS total FROM complaints`
-  ); // 10
+  ); // 0
 
   // Per category count
   const [categoryRows] = await db.promise().query(
     `SELECT category, COUNT(*) AS count
      FROM complaints GROUP BY category`
-  );  // DRAINAGE- 2 LIGHTS- 3 ROADS- 1 WATER- 1 GARBAGE- 1 ENVIRON- 1 OTHER- 1 PUBLIC- 0
+  );  // DRAINAGE- 0 LIGHTS- 0 ROADS- 0 WATER- 0 GARBAGE- 0 ENVIRON- 0 OTHER- 0 PUBLIC- 0
 
   const countMap = {};
 
@@ -1615,7 +1808,7 @@ async function updateCategorySnapshots() {
   // Prev percentages — snapshot-லிருந்து
   const [snapshots] = await db.promise().query(
     `SELECT category, current_percent FROM category_percentage` 
-  ); // DRAINAGE- 22.22 LIGHTS- 22.22 ROADS- 11.11 WATER- 11.11 GARBAGE- 11.11 ENVIRON- 11.11 OTHER- 11.11 PUBLIC- 0
+  ); // DRAINAGE- 0 LIGHTS- 0 ROADS- 0 WATER- 100 GARBAGE- 0 ENVIRON- 0 OTHER- 0 PUBLIC- 0
 
   const prevMap = {};
 
@@ -1626,20 +1819,20 @@ async function updateCategorySnapshots() {
 
   // Each category update
   for (const name of ALL_CATEGORIES) {
-    const count          = countMap[name] || 0; // LIGHTS -3
+    const count          = countMap[name] || 0; // WATER - 1
     
     const currentPercent = total > 0
       ? parseFloat(((count / total) * 100).toFixed(2))
-      : 0; // LIGHTS - 30.00
+      : 0; // WATER - 0 
 
-    const prevPercent    = prevMap[name] ?? 0; // LIGHTS- 22.22
+    const prevPercent    = prevMap[name] ?? 0; // WATER - 100
 
     const trend =
       currentPercent > prevPercent ? "up"   :
       currentPercent < prevPercent ? "down"  :
-      "stable";
+      "stable"; // down
 
-    const diff = currentPercent - prevPercent; 
+    const diff = currentPercent - prevPercent; // -100 
 
     await db.promise().query(
       `UPDATE category_percentage
@@ -1649,7 +1842,313 @@ async function updateCategorySnapshots() {
            trend           = ?
        WHERE category      = ?`,
       [prevPercent, currentPercent, diff, trend, name]
-    );
+    ); // 100 0 -100 down WATER
   }
+
+}
+exports.getCategoryTrends = async (req,res) =>{
+try
+{
+  const [trendRows] = await db.promise().query(`
+      SELECT category, trend
+      FROM category_snapshots
+    `);
+
+    const trends = {};
+
+    trendRows.forEach(row => {
+      trends[row.category] = row.trend;
+    });
+
+    res.status(200).json(trends);
+  }
+  catch(err){
+    res.status(500).json({ message: err.message });
+  }
+};
+exports.deleteComplaint = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user.email; // ✅ Logged-in user
+
+    const [[complaint]] = await db.promise().query(
+      `SELECT user_email ,category FROM complaints WHERE id = ?`,
+      [id]
+    );
+
+    const category = complaint.category;
+
+    const [[totalComplaint]] = await db.promise().query(
+                      `
+                      SELECT COUNT(*) AS count
+                      FROM complaints`
+                      );
+
+    const oldComplaintCount = totalComplaint.count;
+
+    const [[oldData]] = await db.promise().query(
+                      `
+                      SELECT COUNT(*) AS count
+                      FROM complaints
+                      WHERE category = ?
+                      `,
+                      [category]
+                      ); 
+
+   const oldCount = oldData.count; 
+
+    if (!complaint) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+
+    if (complaint.user_email !== userEmail) {
+      return res.status(403).json({ 
+        message: "You can only delete your own complaint" 
+      });
+    }
+
+    await db.promise().query(
+      `DELETE FROM complaints WHERE id = ?`,
+      [id]
+    );
+
+    const [[snapshot]] = await db.promise().query(
+      `SELECT pending, inProgress, resolved 
+      FROM status_snapshots 
+      WHERE id = 1`
+    ); 
+
+   const prev_pending = snapshot.pending; // 100 
+   const prev_inProgress = snapshot.inProgress; // 0
+   const prev_resolved = snapshot.resolved; // 0
+
+    const [[{ total: newTotal }]] = await db.promise().query(
+      `SELECT COUNT(*) AS total FROM complaints`
+    );  // 0
+
+    const [[{ pending: newPending }]] = await db.promise().query(
+      `SELECT COUNT(*) AS pending FROM complaints WHERE status = 'Pending'`
+    ); // 0
+
+    const [[{ inProgress: newInProgress }]] = await db.promise().query(
+      `SELECT COUNT(*) AS inProgress FROM complaints WHERE status = 'In Progress'`
+    ); // 0
+
+    const [[{ resolved: newResolved }]] = await db.promise().query(
+      `SELECT COUNT(*) AS resolved FROM complaints WHERE status = 'Resolved'`
+    ); // 0
+
+    const newSnapshot = {
+      total:      newTotal, // 0
+      pending:    newTotal > 0 ? parseFloat(((newPending / newTotal) * 100).toFixed(1)) : 0, // 0
+      inProgress: newTotal > 0 ? parseFloat(((newInProgress / newTotal) * 100).toFixed(1)) : 0, // 0
+      resolved:   newTotal > 0 ? parseFloat(((newResolved / newTotal) * 100).toFixed(1)) : 0, // 0
+    };
+
+    // 4. COMPUTE DIFF — positive = increased, negative = decreased
+    const diff = {
+      pending:    parseFloat((newSnapshot.pending    - prev_pending).toFixed(1)), // -100 
+      inProgress: parseFloat((newSnapshot.inProgress - prev_inProgress).toFixed(1)), // 0
+      resolved:   parseFloat((newSnapshot.resolved   - prev_resolved).toFixed(1)), // 0
+    };
+
+    await db.promise().query(`
+    UPDATE status_snapshots 
+    SET 
+      prev_pending    = ?,
+      prev_inProgress = ?,
+      prev_resolved   = ?,
+      pending         = ?,
+      inProgress      = ?,
+      resolved        = ?
+    WHERE id = 1
+  `, [
+    prev_pending,    // before update // 100
+    prev_inProgress, // 0
+    prev_resolved, // 0
+    newSnapshot.pending,     // after update // 0
+    newSnapshot.inProgress, // 0
+    newSnapshot.resolved // 0
+  ]); 
+
+    const [[newData]] = await db.promise().query(
+                      `
+                      SELECT COUNT(*) AS count
+                      FROM complaints
+                      WHERE category = ?
+                      `,
+                      [category]
+                      );
+
+  const newCount = newData.count;
+
+  let trend = "stable";
+
+if (newCount > oldCount) {
+  trend = "up";
+}
+else if (newCount < oldCount) {
+  trend = "down";
+}
+
+await db.promise().query(`
+  UPDATE category_snapshots
+  SET
+    prev_count = current_count,
+    trend = 'stable'
+`);
+
+await db.promise().query(
+  `
+  UPDATE category_snapshots
+  SET
+    prev_count = ?,
+    current_count = ?,
+    trend = ?
+  WHERE category = ?
+  `,
+  [oldCount, newCount, trend, category] // 2, 3, up, Drainage
+);
+
+await updateCategorySnapshots();
+
+const [trendRows] = await db.promise().query(`
+      SELECT category, trend
+      FROM category_snapshots
+    `);
+
+    const trends = {};
+
+    trendRows.forEach(row => {
+      trends[row.category] = row.trend;
+    });
+
+const [[{ resolved }]] = await db.promise().query(
+      `SELECT COUNT(*) AS resolved FROM complaints WHERE status = 'Resolved'`
+    ); // 0
+
+    const resolvedRate = newTotal > 0 ? Math.round((resolved / newTotal) * 100) : 0; // 0
+
+    const [categoryRows] = await db.promise().query(
+      `SELECT category, COUNT(*) AS count FROM complaints GROUP BY category`
+    );
+
+    const complaintTotal = newTotal - oldComplaintCount; // 0
+    
+    const complaintTrend = complaintTotal > 0 ? "up" : complaintTotal < 0 ?  "down" : null 
+
+    let mostActiveCategory = "None";
+
+    if (categoryRows.length > 0) {
+      const max = categoryRows.reduce((a, b) =>
+        a.count > b.count ? a : b
+      );
+
+      mostActiveCategory = max.category;
+    }
+
+    const countMap = {};
+
+    categoryRows.forEach(row => {
+      countMap[row.category] = row.count;
+    });
+
+    // DB-லிருந்து updated values fetch பண்ணு
+    const [updatedSnaps] = await db.promise().query(
+      `SELECT category, prev_percent, current_percent, trend, diff 
+      FROM category_percentage`
+    );
+
+    const categoryData = {};
+
+    updatedSnaps.forEach((s) => 
+    {
+      categoryData[s.category] = {
+        currentPercent: parseFloat(s.current_percent || 0),
+        prevPercent:    parseFloat(s.prev_percent    || 0),
+        diff:           parseFloat(s.diff            || 0),
+        trend:          s.trend || "stable",
+        count:          countMap[s.category],
+      };
+    });
+
+    const io = getIo();
+
+    io.emit("complaint-deleted", 
+   { 
+    complaintId: Number(id) ,
+    counts: 
+    {
+        total:      newTotal,
+        pending:    newPending,
+        inProgress: newInProgress,
+        resolved:   newResolved,
+      },
+      percentages: newSnapshot,
+      diff,
+      trends,
+      categoryData ,
+      newTotal,
+      complaintTotal,
+      complaintTrend,
+      resolvedRate,
+      mostActiveCategory
+    });
+
+    res.status(200).json({ message: "Complaint deleted successfully" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to delete complaint" });
+  }
+};
+
+exports.getNotification = async (req, res) => {
+
+  try {
+    const [rows] = await db.promise().query(
+      `SELECT * FROM notifications
+       WHERE receiver_id = ?
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [req.user.id]
+    );
+
+    res.status(200).json(rows);
+  } catch (err) 
+  {
+    res.status(500).json({ message: "Failed" });
+  }
+};
+
+exports.readNotification = async (req, res) => {
+  try{
+
+  await db.promise().query(
+    `UPDATE notifications SET is_read = TRUE
+     WHERE id = ? AND receiver_id = ?`,
+    [req.params.id, req.user.id]
+  );
+  res.status(200).json({ message: "Marked as read" });
+}
+catch(err){
+  res.status(500).json("Caught Error :",err);
+}
+};
+
+exports.readAllNotification = async (req, res) => {
+  try{
+
+  await db.promise().query(
+    `UPDATE notifications SET is_read = TRUE
+     WHERE receiver_id = ?`,
+   [req.user.id]
+  );
+
+  res.status(200).json({message:"Message Read SuccessFully"})
+}
+catch(err){
+  res.status(500).json("Failed to read :",err);
+}
 
 }

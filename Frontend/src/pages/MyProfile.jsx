@@ -192,19 +192,20 @@ const getDotColor = (status) => {
 };
 
 const getIconColor = (title) => {
-  const category = title.trim().toLowerCase();
+  const category = title.trim().toLowerCase().replace(/\s+/g, "");
+  console.log("Category :",category);
 
   if (category.includes("watersupply")) 
-    return "#3fb3ed";
+    return "#13a1e8";
   if (category.includes("garbage")) 
     return "#0af962";
   if (category.includes("street")) 
     return "#ffe100";
-  if (category.includes("road&safety")) 
+  if (category.includes("roads&safety")) 
     return "#a855f7";
   if (category.includes("publicsafety")) 
     return "#ea0808";
-  if (category.includes("other")) 
+  if (category.includes("others")) 
     return "#1a1a1a";
   if (category.includes("environment")) 
     return "#00ff22";
@@ -390,19 +391,19 @@ const getStatus = (status) => {
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{p?.contributions+p?.reported+p?.resolved}</span>
+              <span className={styles.statNum}>{myComplaints.length}</span>
               <span className={styles.statLabel}>Total Complaints</span>
             </div>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{p?.resolved}</span>
+              <span className={styles.statNum}>{myComplaints.filter(c => c.status === "Resolved").length}</span>
               <span className={styles.statLabel}>Resolved</span>
             </div>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{p?.contributions}</span>
+              <span className={styles.statNum}>{myComplaints.filter(c => c.status === "In Progress").length}</span>
               <span className={styles.statLabel}>In Progress</span>
             </div>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{p?.reported}</span>
+              <span className={styles.statNum}>{myComplaints.filter(c => c.status === "Pending").length}</span>
               <span className={styles.statLabel}>Pending</span>
             </div>
           </div>

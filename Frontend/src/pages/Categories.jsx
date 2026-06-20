@@ -90,7 +90,7 @@ function Categories() {
     return <div className={styles.loading}> Loading categories...</div>;
   }
  
-  const { total, resolvedRate, mostActive, categories } = categoryStats;
+  const { total, resolvedRate, mostActive, categories ,resolvedDiff ,resolvedTrend ,complaintDiff,complaintTrend} = categoryStats;
 
   console.log(categories);
 
@@ -118,21 +118,25 @@ function Categories() {
       label: "Total Categories",
       value: categories.length.toString(),
       change: null,
+      trend: null
     },
     {
       label: "Total Complaints",
       value: total.toLocaleString(),
-      change: null,
+      change:complaintTrend ? `${Math.round(Math.abs(complaintDiff))}` : null,
+      trend: complaintTrend
     },
     {
       label: "Most Active",
       value: mostActive,
       change: null,
+      trend: null
     },
     {
       label: "Resolved Rate",
       value: `${resolvedRate}%`,
-      change: null,
+      change: resolvedTrend ? `${Math.abs(resolvedDiff).toFixed(1)}%` : null,
+      trend: resolvedTrend
     },
   ];
 
@@ -160,9 +164,10 @@ function Categories() {
                   s.trend === "up" ? styles.up : styles.down
                 }`}
               >
-                {s.trend === "up" ? "▲" : "▼"} {s.change} from last month
+                {s.trend === "up" ? "▲" : "▼"} {s.change}
               </span>
-            )}
+            )
+            }
           </div>
         ))}
       </div>
@@ -211,15 +216,15 @@ function Categories() {
                         <div
                           className={styles.tableBarFill}
                           style={{
-                            width: `${percent}%`,
+                            width: `${percent||0}%`,
                             background: cat.accent,
                           }}
                         />
                       </div>
-                      <span className={styles.tableCount}>{cat.count}</span>
+                      <span className={styles.tableCount}>{cat.count||0}</span>
                     </div>
                   </td>
-                  <td>{percent}%</td>
+                  <td>{percent || 0}%</td>
                   <td>
                     <PriorityBadge percent={percent}/>
                   </td>

@@ -157,7 +157,7 @@
   background: #e02020;
 }
 .unreadDot::after {
-  content: var(--count);
+  content: "1";
   position: absolute;
   top: 4px;
   right: 4px;
