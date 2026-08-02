@@ -1,0 +1,171 @@
+.otpContainer{
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 5px 7px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.otpContainer h2{
+    font-family: "Roboto", sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    color: #222;
+}
+
+.otpContainer form{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.otpInputs{
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.otpInputs input{
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border: 2px solid #dcdcdc;
+    border-radius: 12px;
+    outline: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: "Roboto", sans-serif;
+    transition: 0.2s ease;
+}
+
+.otpInputs input:focus{
+    border-color: #2563eb;
+    box-shadow: 0px 0px 8px rgba(37,99,235,0.3);
+}
+
+.otpContainer button{
+    width: 100%;
+    padding: 10px 5px;
+    border: none;
+    border-radius: 12px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: "Roboto", sans-serif;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.otpContainer button:hover{
+    background: #1d4ed8;
+}
+
+.inputBox{
+    position: relative;
+    width: 100%;
+}
+
+.inputBox input{
+    width: 100%;
+    padding: 14px 45px 14px 12px;
+    border: 2px solid #dcdcdc;
+    border-radius: 10px;
+    outline: none;
+    font-size: 15px;
+    font-family: "Roboto", sans-serif;
+    transition: 0.3s ease;
+    background: transparent;
+}
+
+.inputBox label{
+    position: absolute;
+    left: 12px;
+    top: 14px;
+    color: gray;
+    font-size: 15px;
+    pointer-events: none;
+    transition: 0.3s ease;
+    background: white;
+    padding: 0 5px;
+}
+
+.inputBox input:focus{
+    border-color: #2563eb;
+}
+
+.inputBox input:focus + label,
+.inputBox input:valid + label{
+    top: -9px;
+    left: 10px;
+    font-size: 13px;
+    color: #2563eb;
+}
+
+.eyeIcon{
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.loadingOverlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.spinner{
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ddd;
+    border-top: 5px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin{
+    100%{
+        transform: rotate(360deg);
+    }
+}
+
+.successBox{
+    padding: 20px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 10px;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 480px){
+
+    .otpContainer{
+        padding: 25px 20px;
+    }
+
+    .otpInputs{
+        gap: 10px;
+    }
+
+    .otpInputs input{
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}

@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+SC:ital,wght@0,400;0,500;0,700;0,800;0,900;1,400;1,500;1,700;1,800;1,900&family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Odibee+Sans&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* ── App ── */
+.app {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.appLayout {
+  width: 100%;
+  max-width: 1510px;
+  display: flex;              /* grid இல்ல — flex use பண்றோம் */
+  min-height: 100vh;
+  background-color: rgb(229, 225, 225);
+  gap: 0px;
+}
+
+/* ── Content Page ── */
+.contentPage {
+  background-color: white;
+  position: relative;
+  height: 100%;
+  flex: 1;                    /* sidebar width மாறும்போது auto expand */
+  transition: all 0.3s ease; /* smooth expand/shrink */
+  overflow-y: auto;
+}
+
+/* ── Sidebar ── */
+.sideBar {
+  width: 300px;               /* உன் original width */
+  min-height: 100vh;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  max-height: 110vh;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+  overflow: hidden;           /* text slide hide */
+}
+
+/* Sidebar Closed — icons only */
+.sideBarClosed {
+  width: 62px;
+}
+
+/* Toggle Button — sidebar right edge-ல */
+.toggleBtn {
+  position: absolute;
+  top: 50%;
+  right: 0px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  color: #292828;
+}
+.toggleBtn:hover {
+  background: linear-gradient(90deg, #ff0000, #8e0404);
+  color: white;
+  border-color: #e02020;
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* ── Logo Section ── */
+.logoSection {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0px 0px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ── Logo ── */
+.logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0; 
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── Website Name ── */
+.websiteName {
+  color: black;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 30px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ── Nav Menu ── */
+.sideBar .navMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 10px;
+}
+
+/* ── Nav Icon (existing .icon) ── */
+.icon {
+  width: 26px;
+  height: 26px;
+  padding: 1px;
+  flex-shrink: 0; /* always visible */
+}
+.icon svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── Nav Item ── */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: rgb(41, 41, 41);
+  text-decoration: none;
+  font-weight: 500;
+  background-color: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14.7px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.navItem:hover {
+  background: linear-gradient(135deg, #f4f1f1, #e7e5e5c3);
+  color: rgb(34, 33, 33);
+}
+.active {
+  background: linear-gradient(90deg, #ff0000, #8e0404);
+  color: white;
+}
+.active:hover {
+  background: linear-gradient(90deg, #ff0000, #8e0404);
+  color: white;
+}
+
+/* ── Nav Text ── */
+.navText {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Closed state — icons center-ஆ */
+.sideBarClosed .navItem {
+  justify-content: center;
+  padding: 8px;
+  gap: 0;
+}
+.sideBarClosed .navText {
+  display: none;
+}
+.sideBarClosed .logoSection {
+  justify-content: center;
+  padding: 10px 0;
+}
+.sideBarClosed .websiteName {
+  display: none;
+}
