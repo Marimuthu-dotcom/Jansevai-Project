@@ -421,30 +421,35 @@ await sendRefreshCookie(res,refreshToken);
 };
 
 exports.getMyProfile = async (req, res) => {
-
     try {
         const email = req.user.email;
 
         const sql = `
         SELECT 
-            users.id,
-            users.username,
-            users.email,
-            users.phone_number,
-            users.role,
-            users.created_at,
-            userDetails.location,
-            userDetails.bio,
-            userDetails.age,
-            userDetails.gender,
-            userDetails.contributions,
-            userDetails.resolved,
-            userDetails.reported
-        FROM users
-        INNER JOIN userDetails
-        ON users.email = userDetails.user_email
-
-        WHERE users.email = ?
+            u.id,
+            u.username,
+            u.email,
+            u.phone_number,
+            u.role,
+            u.created_at,
+            ud.location,
+            ud.bio,
+            ud.age,
+            ud.gender,
+            ud.contributions,
+            ud.resolved,
+            ud.reported,
+            wg.id AS group_id, 
+            wg.district,
+            wg.ward_number,
+            wg.group_name,
+            gm.role AS group_role,
+            gm.status AS group_status
+        FROM users u INNER JOIN userDetails ud ON u.email = ud.user_email
+        LEFT JOIN group_members gm ON u.email = gm.user_email AND gm.status = 'Active'
+        LEFT JOIN ward_groups wg ON gm.group_id = wg.id
+        WHERE u.email = ?
+        LIMIT 1
         `;
 
         const [result] = await db.promise().query(sql, [email]);
@@ -453,18 +458,13 @@ exports.getMyProfile = async (req, res) => {
           return res.status(404).json({ message: "User not found" });
         }
 
-
+        console.log(result);
+        console.log(result[0]);
         res.json(result[0]);
 
+    } catch(err) {
+        res.status(500).json({ message: err.message });
     }
-    catch(err) {
-
-        res.status(500).json({
-            message: err.message
-        });
-
-    }
-
 };
 
 exports.getAllUsers = async (req, res) => {
@@ -2597,6 +2597,18 @@ exports.createWardGroup = async (req, res) => {
 
     const newGroupId = result.insertId;
 
+    await db.promise().query(
+    `INSERT INTO group_members
+    (group_id, user_email, role, status)
+    VALUES (?, ?, ?, ?)`,
+    [
+      newGroupId,
+      email,
+      "Admin",
+      "Active"
+    ]
+  );
+
     // 5. Insert categories into junction table (if you have one)
     // NOTE: Your ward_groups table doesn't have a categories column.
     // You need a separate table like ward_group_categories
@@ -2621,46 +2633,27 @@ exports.createWardGroup = async (req, res) => {
   }
 };
 
-// ✅ Get all districts with their wards (AuthContext loads this on boot)
-exports.getDistrictsWithWards = async (req, res) => {
+
+// GET /api/groups/district/:district/wards
+exports.getWardsByDistrict = async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
-      `SELECT
-         id,
-         district,
-         ward_number,
-         group_name,
-         area_locality,
-         member_count,
-         logo_url
+    const { district } = req.params;
+
+    const [wards] = await db.promise().query(
+      `SELECT *
        FROM ward_groups
-       ORDER BY
-         district ASC,
-         CAST(ward_number AS UNSIGNED) ASC`
+       WHERE district = ?
+       ORDER BY CAST(ward_number AS UNSIGNED) ASC`,
+      [district]
     );
 
-    const result = {};
-    rows.forEach(row => {
-      if (!result[row.district]) {
-        result[row.district] = [];
-      }
-      result[row.district].push({
-        id:            row.id,
-        ward_number:   row.ward_number,
-        group_name:    row.group_name,
-        area_locality: row.area_locality,
-        member_count:  row.member_count,
-        logo_url:      row.logo_url,
-      });
-    });
-
-    res.json(result);
+    res.json({ wards });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
+};   
 
-// ✅ Get single group details by district + ward_number
+// GET /api/groups/ward/:district/:wardNumber
 exports.getGroupByWard = async (req, res) => {
   try {
     const { district, wardNumber } = req.params;
@@ -2670,11 +2663,9 @@ exports.getGroupByWard = async (req, res) => {
          wg.*,
          u.username  AS admin_name,
          u.email     AS admin_email,
-         u.phone     AS admin_phone,
-         u.avatar    AS admin_avatar,
+         u.phone_number     AS admin_phone,
          u.role      AS admin_role
-       FROM ward_groups wg
-       JOIN users u ON wg.admin_email = u.email
+       FROM ward_groups wg JOIN users u ON wg.admin_email = u.email
        WHERE wg.district = ? AND wg.ward_number = ?`,
       [district, wardNumber]
     );
@@ -2683,21 +2674,16 @@ exports.getGroupByWard = async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    const [categories] = await db.promise().query(
-      `SELECT category FROM group_categories WHERE group_id = ?`,
-      [group.id]
-    );
-
-    res.json({
-      ...group,
-      categories: categories.map(c => c.category)
-    });
-  } catch (err) {
+    res.json(group);
+    console.log(group);
+  } 
+  catch (err) {
+    console.error("Error fetching group by ward:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// ✅ Get members of a specific group
+// GET /api/groups/:groupId/members
 exports.getGroupMembers = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -2710,16 +2696,45 @@ exports.getGroupMembers = async (req, res) => {
          gm.joined_at,
          u.username,
          u.email,
-         u.avatar,
          ud.phone_number AS contact,
          COALESCE(ud.reported, 0) AS reported,
          COALESCE(ud.resolved, 0) AS resolved
        FROM group_members gm
-       JOIN users u         ON gm.user_email = u.email
+       JOIN users u ON gm.user_email = u.email
        LEFT JOIN userDetails ud ON gm.user_email = ud.user_email
        WHERE gm.group_id = ?
        ORDER BY gm.joined_at DESC`,
       [groupId]
+    );
+
+    res.json({ members });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/groups/district/:district/ungrouped-members
+exports.getUngroupedMembers = async (req, res) => {
+  try {
+    const { district } = req.params;
+
+    const [members] = await db.promise().query(
+      `SELECT 
+         u.id,
+         u.username,
+         u.email,
+         u.role,
+         'Active' AS status,
+         u.created_at AS joined_at,
+         ud.phone_number AS contact,
+         COALESCE(ud.reported, 0) AS reported,
+         COALESCE(ud.resolved, 0) AS resolved
+       FROM users u
+       LEFT JOIN userDetails ud ON u.email = ud.user_email
+       WHERE u.district = ? 
+         AND (u.ward IS NULL OR u.ward = '' OR u.ward = '0')
+       ORDER BY u.created_at DESC`,
+      [district]
     );
 
     res.json({ members });

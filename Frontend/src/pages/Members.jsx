@@ -4,17 +4,21 @@ import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/CreateContext";
 import CM from "../../../Backend/uploads/complaintImages/1785425536971-350414623.jfif";
-import api from "../api/api.js";
-import { 
-  ClipboardList, 
-  RefreshCw, 
-  Users, 
+import api from "../api/api.js"; // Your axios instance
+import {
+  ClipboardList,
+  RefreshCw,
+  Users,
   CheckCircle2,
   Network,
-  BadgeCheck
+  BadgeCheck,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
-/* ── Static Data ────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   STATIC DATA
+   ───────────────────────────────────────────── */
 const DISTRICTS = [
   "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
   "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kanchipuram",
@@ -27,41 +31,88 @@ const DISTRICTS = [
 ];
 
 const TABLE_TABS = [
-  { label: "All Members" },
-  { label: "Active" },
-  { label: "Volunteers" },
-  { label: "Admins" },
-  { label: "Inactive" },
+  { label: "All Members", count: 0 },
+  { label: "Active", count: 0 },
+  { label: "Volunteers", count: 0 },
+  { label: "Admins", count: 0 },
+  { label: "Inactive", count: 0 },
 ];
 
-/* ── Helpers ────────────────────────────────────────────────── */
-function getInitials(name) {
+/* ─────────────────────────────────────────────
+   API SERVICE (Exact match to your backend)
+   ───────────────────────────────────────────── */
+const groupApi = {
+  /** GET /api/groups/district/:district/wards */
+  getWardsByDistrict: async (district) => {
+    const res = await api.get(`/api/auth/district/${encodeURIComponent(district)}/wards`);
+    return res.data; // { wards: [{ id, ward_number, district, group_name, ... }, ...] }
+  },
+
+  /** GET /api/groups/ward/:district/:wardNumber */
+  getGroupByWard: async (district, wardNumber) => {
+    const res = await api.get(`/api/auth/ward/${encodeURIComponent(district)}/${wardNumber}`);
+    return res.data; // { id, ward_number, district, admin_name, admin_email, admin_phone, admin_role, ... }
+  },
+
+  /** GET /api/groups/:groupId/members */
+  getGroupMembers: async (groupId) => {
+    const res = await api.get(`/api/auth/${groupId}/members`);
+    return res.data; // { members: [{ id, username, email, role, status, joined_at, contact, reported, resolved }, ...] }
+  },
+
+  /** GET /api/groups/district/:district/ungrouped-members 
+   *  (Create this endpoint in backend if not exists)
+   */
+  getUngroupedMembers: async (district) => {
+    const res = await api.get(`/api/auth/district/${encodeURIComponent(district)}/ungrouped-members`);
+    return res.data; // { members: [...] }
+  },
+};
+
+/* ─────────────────────────────────────────────
+   HELPERS
+   ───────────────────────────────────────────── */
+
+// Generate avatar color from email string
+const getAvatarColor = (email) => {
+  const colors = ["#fca5a5", "#93c5fd", "#c4b5fd", "#fde047", "#f9a8d4", "#86efac", "#fdba74", "#67e8f9"];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// Get initials from username
+const getInitials = (name) => {
   if (!name) return "??";
   return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-}
+};
 
-function getColor(str) {
-  const colors = ["#fca5a5", "#93c5fd", "#c4b5fd", "#fde047", "#f9a8d4", "#86efac", "#fdba74", "#a5f3fc"];
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
+// Format date from MySQL datetime
+const formatDate = (mysqlDate) => {
+  if (!mysqlDate) return "-";
+  const d = new Date(mysqlDate);
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+};
 
-function getWardColor(id) {
-  const colors = ["#e02020", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2", "#db2777", "#7c3aed"];
-  return colors[(id % colors.length)];
-}
+// Transform backend member → frontend table format
+const transformMember = (m) => ({
+  id: m.id,
+  name: m.username || "Unknown",
+  email: m.email,
+  initials: getInitials(m.username),
+  color: getAvatarColor(m.email),
+  role: m.role || "Member",
+  joined: formatDate(m.joined_at),
+  contact: m.contact || "-",
+  status: m.status || "Active",
+  reported: m.reported || 0,
+  resolved: m.resolved || 0,
+});
 
-function formatDate(dateStr) {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
+/* ─────────────────────────────────────────────
+   UI COMPONENTS
+   ───────────────────────────────────────────── */
 
-/* ── Components ─────────────────────────────────────────────── */
 function StatCard({ icon, label, value }) {
   return (
     <div className={styles.statCard}>
@@ -80,15 +131,15 @@ function WardCard({ ward, selected, onClick }) {
       className={`${styles.wardCard} ${selected ? styles.wardCardActive : ""}`}
       onClick={onClick}
     >
-      <div className={styles.wardIcon} style={{ backgroundColor: ward.color + "15", color: ward.color }}>
+      <div className={styles.wardIcon} style={{ backgroundColor: "#e0202015", color: "#e02020" }}>
         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
       </div>
       <div className={styles.wardInfo}>
-        <span className={styles.wardName}>{ward.name}</span>
-        <span className={styles.wardLocation}>{ward.location}</span>
-        <span className={styles.wardCount}>{ward.members} Members</span>
+        <span className={styles.wardName}>{ward.ward_number ? `${ward.ward_number}th Ward` : ward.group_name}</span>
+        <span className={styles.wardLocation}>{ward.district}</span>
+        <span className={styles.wardCount}>{ward.members_count || 0} Members</span>
       </div>
     </div>
   );
@@ -123,144 +174,248 @@ function StatusBadge({ status }) {
   );
 }
 
-/* ── Main Page ──────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   MAIN MEMBERS PAGE
+   ───────────────────────────────────────────── */
+
 function Members() {
-  const { user, wardsByDistrict } = useContext(AuthContext);
+  const { user } = useContext(AuthContext); // { id, email, district, ward }
   const navigate = useNavigate();
 
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedWardId,   setSelectedWardId]   = useState(null); // number | 'ungrouped'
-  const [groupDetails,     setGroupDetails]     = useState(null);
-  const [groupMembers,     setGroupMembers]     = useState([]);
-  const [membersLoading,   setMembersLoading]   = useState(false);
-  const [activeTableTab,   setActiveTableTab]   = useState("All Members");
-  const [searchQuery,      setSearchQuery]      = useState("");
-  const [initialSetupDone, setInitialSetupDone] = useState(false);
+  /* ── Selection States ── */
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState(null); // ward_number (string)
+  
+  /* ── Data States ── */
+  const [wards, setWards] = useState([]);               // from ward_groups table
+  const [currentGroup, setCurrentGroup] = useState(null); // group object from getGroupByWard
+  const [tableMembers, setTableMembers] = useState([]); // transformed members
+  const [isUngrouped, setIsUngrouped] = useState(false);
 
-  const currentWards = wardsByDistrict[selectedDistrict] || [];
-  const selectedWardObj = currentWards.find(w => w.id === selectedWardId);
+  /* ── UI States ── */
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [activeTableTab, setActiveTableTab] = useState("All Members");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  /* ── Select Ungrouped ── */
-  const selectUngrouped = useCallback((district) => {
-    setSelectedDistrict(district);
-    setSelectedWardId('ungrouped');
-    setActiveTableTab("All Members");
-    setSearchQuery("");
-    setGroupDetails(null);
-    setGroupMembers([]);
-  }, []);
-
-  /* ── API: Select a real ward ── */
-  const handleWardSelect = useCallback(async (ward, district) => {
-    setSelectedDistrict(district);
-    setSelectedWardId(ward.id);
-    setActiveTableTab("All Members");
-    setSearchQuery("");
-    setMembersLoading(true);
-    try {
-      const [groupRes, membersRes] = await Promise.all([
-        api.get(`/api/groups/ward/${district}/${ward.ward_number}`),
-        api.get(`/api/groups/${ward.id}/members`),
-      ]);
-      setGroupDetails(groupRes.data);
-      setGroupMembers(membersRes.data.members || []);
-    } catch (err) {
-      console.log("Ward select error:", err);
-      setGroupDetails(null);
-      setGroupMembers([]);
-    } finally {
-      setMembersLoading(false);
-    }
-  }, []);
-
-  /* ── Click a district tab ── */
-  const handleDistrictSelect = useCallback((district) => {
-    const wards = wardsByDistrict[district] || [];
-    if (wards.length > 0) {
-      handleWardSelect(wards[0], district);
-    } else {
-      selectUngrouped(district);
-    }
-  }, [wardsByDistrict, handleWardSelect, selectUngrouped]);
-
-  /* ── Auto-select user's own group on first load ── */
+  /* ═══════════════════════════════════════════
+     STEP 1: INITIALIZE ON WEBSITE LOAD
+     Runs ONLY when user data is available.
+     Does NOT depend on selectedDistrict/selectedWard.
+     ═══════════════════════════════════════════ */
   useEffect(() => {
-    if (initialSetupDone) return;
-    if (!user || !wardsByDistrict || Object.keys(wardsByDistrict).length === 0) return;
+    if (!user || isInitialized) return;
 
-    let targetDistrict = null;
-    let targetWard = null;
+    const initializeMemberPage = async () => {
+      setLoading(true);
+      setError(null);
 
-    // If user belongs to a district, try to locate their ward
-    if (user.district) {
-      targetDistrict = user.district;
-      const districtWards = wardsByDistrict[targetDistrict] || [];
-      if (user.ward_number) {
-        targetWard = districtWards.find(
-          w => String(w.ward_number) === String(user.ward_number)
-        );
+      try {
+        // 1. Read user's district and ward from AuthContext
+        const userDistrict = user.district || "";
+        const userWard = user.ward || null;
+
+        if (!userDistrict) {
+          throw new Error("User district not found");
+        }
+
+        // 2. Set selected district in UI
+        setSelectedDistrict(userDistrict);
+
+        // 3. Fetch wards for user's district from ward_groups table
+        const wardsData = await groupApi.getWardsByDistrict(userDistrict);
+        const districtWards = wardsData.wards || [];
+        setWards(districtWards);
+
+        // 4. If district has wards
+        if (districtWards.length > 0) {
+          // Check if user's ward exists in fetched wards
+          const userWardExists = districtWards.some(
+            (w) => String(w.ward_number) === String(userWard)
+          );
+
+          // Use user's ward if exists, otherwise fallback to first ward
+          const targetWardNumber = userWardExists ? userWard : districtWards[0].ward_number;
+
+          // 5. Set selected ward
+          setSelectedWard(targetWardNumber);
+          setIsUngrouped(false);
+
+          // 6. Fetch group details for this district + ward
+          const groupData = await groupApi.getGroupByWard(userDistrict, targetWardNumber);
+          setCurrentGroup(groupData);
+
+          // 7. Fetch members using group id
+          if (groupData && groupData.id) {
+            const membersData = await groupApi.getGroupMembers(groupData.id);
+            const transformed = (membersData.members || []).map(transformMember);
+            setTableMembers(transformed);
+          }
+        }
+        // 8. If district has NO wards → load ungrouped members
+        else {
+          setSelectedWard(null);
+          setCurrentGroup(null);
+          setIsUngrouped(true);
+
+          try {
+            const ungroupedData = await groupApi.getUngroupedMembers(userDistrict);
+            const transformed = (ungroupedData.members || []).map(transformMember);
+            setTableMembers(transformed);
+          } catch (ungroupedErr) {
+            // If ungrouped endpoint doesn't exist yet, just show empty
+            console.warn("Ungrouped endpoint not available:", ungroupedErr);
+            setTableMembers([]);
+          }
+        }
+
+        setIsInitialized(true);
+      } 
+      catch (err) 
+      {
+        console.error("Initialization error:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    if (targetDistrict && targetWard) {
-      // User has a real ward group → open it
-      handleWardSelect(targetWard, targetDistrict);
-    } else if (targetDistrict) {
-      // User has district but no ward (or ward not in DB yet)
-      const wards = wardsByDistrict[targetDistrict] || [];
-      if (wards.length > 0) {
-        handleWardSelect(wards[0], targetDistrict);
-      } else {
-        selectUngrouped(targetDistrict);
+    initializeMemberPage();
+  }, [user]);
+
+  /* ═══════════════════════════════════════════
+     STEP 2: MANUAL DISTRICT SELECTION
+     Called when user clicks a district button.
+     NO useEffect involved.
+     ═══════════════════════════════════════════ */
+  const handleDistrictChange = useCallback(
+    async (district) => {
+      if (district === selectedDistrict) 
+        return;
+
+      setLoading(true);
+      setError(null);
+      setSelectedDistrict(district);
+      setSelectedWard(null);
+      setCurrentGroup(null);
+      setTableMembers([]);
+
+      try {
+        // 1. Fetch wards for newly selected district
+        const wardsData = await groupApi.getWardsByDistrict(district);
+        const districtWards = wardsData.wards || [];
+        setWards(districtWards);
+
+        // 2. If wards exist → show them, WAIT for user to select ward
+        if (districtWards.length > 0) {
+          setIsUngrouped(false);
+          // Do NOT fetch members here. Wait for handleWardChange().
+        }
+        // 3. If NO wards → load ungrouped members automatically
+        else {
+          setIsUngrouped(true);
+          try {
+            const ungroupedData = await groupApi.getUngroupedMembers(district);
+            const transformed = (ungroupedData.members || []).map(transformMember);
+            setTableMembers(transformed);
+          } catch (ungroupedErr) {
+            console.warn("Ungrouped endpoint not available:", ungroupedErr);
+            setTableMembers([]);
+          }
+        }
+      } catch (err) {
+        console.error("District change error:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load district");
+        setWards([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // User has no district info → default to first static district
-      const firstDistrict = DISTRICTS[0];
-      const wards = wardsByDistrict[firstDistrict] || [];
-      if (wards.length > 0) {
-        handleWardSelect(wards[0], firstDistrict);
-      } else {
-        selectUngrouped(firstDistrict);
+    },
+    [selectedDistrict]
+  );
+
+  /* ═══════════════════════════════════════════
+     STEP 3: MANUAL WARD SELECTION
+     Called when user clicks a ward card.
+     NO useEffect involved.
+     ═══════════════════════════════════════════ */
+  const handleWardChange = useCallback(
+    async (wardNumber) => {
+      // Prevent duplicate calls
+      if (wardNumber === selectedWard) return;
+
+      setLoading(true);
+      setError(null);
+      setSelectedWard(wardNumber);
+      setIsUngrouped(false);
+
+      try {
+        // 1. Fetch group by district + wardNumber
+        const groupData = await groupApi.getGroupByWard(selectedDistrict, wardNumber);
+        setCurrentGroup(groupData);
+
+        // 2. Fetch members by group id
+        if (groupData && groupData.id) {
+          const membersData = await groupApi.getGroupMembers(groupData.id);
+          const transformed = (membersData.members || []).map(transformMember);
+          setTableMembers(transformed);
+        } else {
+          setTableMembers([]);
+        }
+      } catch (err) {
+        console.error("Ward change error:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load ward members");
+        setCurrentGroup(null);
+        setTableMembers([]);
+      } finally {
+        setLoading(false);
       }
-    }
+    },
+    [selectedDistrict, selectedWard]
+  );
 
-    setInitialSetupDone(true);
-  }, [user, wardsByDistrict, initialSetupDone, handleWardSelect, selectUngrouped]);
-
-  /* ── Derived: filter & counts ── */
+  /* ═══════════════════════════════════════════
+     TABLE FILTERING (Client-side)
+     ═══════════════════════════════════════════ */
   const filteredMembers = useMemo(() => {
-    let data = groupMembers;
-    if (activeTableTab === "Active")      data = data.filter(m => m.status === "Active");
-    if (activeTableTab === "Volunteers")  data = data.filter(m => m.role === "Volunteer");
-    if (activeTableTab === "Admins")      data = data.filter(m => m.role === "Admin");
-    if (activeTableTab === "Inactive")    data = data.filter(m => m.status === "Inactive");
+    let data = [...tableMembers];
+
+    if (activeTableTab === "Active")
+      data = data.filter((m) => m.status === "Active");
+    if (activeTableTab === "Volunteers")
+      data = data.filter((m) => m.role === "Volunteer");
+    if (activeTableTab === "Admins")
+      data = data.filter((m) => m.role === "Admin");
+    if (activeTableTab === "Inactive")
+      data = data.filter((m) => m.status === "Inactive");
+
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      data = data.filter(m =>
-        (m.username?.toLowerCase().includes(q)) ||
-        (m.email?.toLowerCase().includes(q))
+      data = data.filter((m) =>
+        m.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+
     return data;
-  }, [activeTableTab, searchQuery, groupMembers]);
+  }, [tableMembers, activeTableTab, searchQuery]);
 
-  const tabCounts = useMemo(() => ({
-    "All Members": groupMembers.length,
-    "Active":      groupMembers.filter(m => m.status === "Active").length,
-    "Volunteers":  groupMembers.filter(m => m.role === "Volunteer").length,
-    "Admins":      groupMembers.filter(m => m.role === "Admin").length,
-    "Inactive":    groupMembers.filter(m => m.status === "Inactive").length,
-  }), [groupMembers]);
+  /* ── Dynamic Admin Info from API ── */
+  const adminInfo = currentGroup ? {
+    name: currentGroup.admin_name || "Unknown",
+    role: currentGroup.admin_role || "Group Admin",
+    email: currentGroup.admin_email || "-",
+    phone: currentGroup.admin_phone || "-",
+    avatar: CM, // You can replace with dynamic avatar if available
+  } : "No Admin Info";
 
-  const groupStats = useMemo(() => [
-    { label: "Total Members", value: groupMembers.length, icon: <Users /> },
-    { label: "Complaints",    value: groupMembers.reduce((s, m) => s + (m.reported || 0), 0), icon: <ClipboardList /> },
-    { label: "Resolved",      value: groupMembers.reduce((s, m) => s + (m.resolved || 0), 0), icon: <CheckCircle2 /> },
-    { label: "In Progress",   value: groupMembers.reduce((s, m) => s + ((m.reported || 0) - (m.resolved || 0)), 0), icon: <RefreshCw /> },
-  ], [groupMembers]);
+  /* ── Dynamic Stats ── */
+  const activeCount = tableMembers.filter(m => m.status === "Active").length;
+  const totalReported = tableMembers.reduce((sum, m) => sum + (m.reported || 0), 0);
+  const totalResolved = tableMembers.reduce((sum, m) => sum + (m.resolved || 0), 0);
 
-  const isUngrouped = selectedWardId === 'ungrouped';
-
+  /* ═══════════════════════════════════════════
+     RENDER
+     ═══════════════════════════════════════════ */
   return (
     <div className={styles.pageWrapper}>
       
@@ -295,51 +450,69 @@ function Members() {
 
       {/* ── Stats Row ── */}
       <div className={styles.statsRow}>
-        <StatCard icon={<Users/>} label="Total Members" value={groupMembers.length} />
-        <StatCard icon={<BadgeCheck />} label="Active Members" value={groupMembers.filter(m => m.status === "Active").length} />
-        <StatCard icon={<Network />} label="Groups" value={currentWards.length} />
+        <StatCard icon={<Users/>} label="Total Members" value={tableMembers.length} />
+        <StatCard icon={<BadgeCheck />} label="Active Members" value={activeCount} />
+        <StatCard icon={<Network />} label="Groups" value={wards.length} />
       </div>
 
-      {/* ── District Selector (STATIC) ── */}
+      {/* ── District Selector ── */}
       <div className={styles.districtBar}>
         {DISTRICTS.map((d) => (
           <button
             key={d}
             className={`${styles.districtBtn} ${selectedDistrict === d ? styles.districtBtnActive : ""}`}
-            onClick={() => handleDistrictSelect(d)}
+            onClick={() => handleDistrictChange(d)}
+            disabled={loading}
           >
             {d}
           </button>
         ))}
       </div>
 
+      {/* ── Loading / Error States ── */}
+      {loading && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 24px", color: "#6b7280" }}>
+          <Loader2 size={20} className="spin" style={{ animation: "spin 1s linear infinite" }} />
+          <span>Loading...</span>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "#fef2f2", color: "#dc2626", borderRadius: 8, margin: "0 24px" }}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ marginLeft: "auto", background: "#dc2626", color: "white", border: "none", padding: "4px 12px", borderRadius: 4, cursor: "pointer" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* ── Wards Section ── */}
       <div className={styles.wardsSection}>
         <h3 className={styles.wardsTitle}>
-          {selectedDistrict || "District"} District - Counsillor Ward <span>(Councillor Wards)</span>
+          {selectedDistrict || "Select District"} District - Counsillor Ward <span>({wards.length} Wards)</span>
         </h3>
         <div className={styles.wardsGrid}>
-          {/* Dynamic wards for the selected district */}
-          {currentWards.map((w) => (
+          {/* Render fetched wards dynamically from API */}
+          {wards.length > 0 && wards.map((w) => (
             <WardCard
               key={w.id}
-              ward={{
-                id: w.id,
-                name: w.group_name || `Ward ${w.ward_number}`,
-                location: w.area_locality || w.group_name,
-                members: w.member_count,
-                color: getWardColor(w.id),
-                icon: "🏛️"
-              }}
-              selected={selectedWardId === w.id}
-              onClick={() => handleWardSelect(w, selectedDistrict)}
+              ward={w}
+              selected={selectedWard === w.ward_number}
+              onClick={() => handleWardChange(w.ward_number)}
             />
           ))}
 
-          {/* Ungrouped card — ALWAYS rendered */}
+          {/* Ungrouped Members Card */}
           <div
             className={`${styles.ungroupedCard} ${isUngrouped ? styles.wardCardActive : ""}`}
-            onClick={() => selectUngrouped(selectedDistrict)}
+            onClick={() => {
+              if (wards.length === 0) return; // Already auto-loaded
+              // Optional: manual click to view ungrouped
+            }}
           >
             <div className={styles.ungroupedIcon}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
@@ -349,7 +522,9 @@ function Members() {
             </div>
             <div className={styles.ungroupedInfo}>
               <span className={styles.ungroupedName}>Ungrouped Members</span>
-              <span className={styles.ungroupedCount}>0 Members</span>
+              <span className={styles.ungroupedCount}>
+                {isUngrouped ? `${tableMembers.length} Members` : (wards.length === 0 ? "Loading..." : "No Wards → Ungrouped")}
+              </span>
             </div>
             <svg className={styles.ungroupedArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
               <polyline points="9 18 15 12 9 6"/>
@@ -364,28 +539,23 @@ function Members() {
         {/* ── Left Panel ── */}
         <div className={styles.leftPanel}>
           
-          {/* Admin Card */}
+          {/* Admin Card - Dynamic from API */}
           <div className={styles.adminCard}>
             <span className={styles.adminTag}>Group Admin</span>
             <div className={styles.adminAvatar}>
-              <img 
-                src={groupDetails?.admin_avatar || CM} 
-                alt={groupDetails?.admin_name || "Admin"} 
-              />
+              <img src={adminInfo.avatar} alt={adminInfo.name} />
               <span className={styles.adminOnline} />
             </div>
             <div className={styles.adminNameRow}>
-              <h4>{groupDetails?.admin_name || (isUngrouped ? "No Admin" : "—")}</h4>
-              {!isUngrouped && (
-                <svg className={styles.shieldIcon} viewBox="0 0 24 24" fill="#e02020" width="16" height="16">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              )}
+              <h4>{adminInfo.name}</h4>
+              <svg className={styles.shieldIcon} viewBox="0 0 24 24" fill="#e02020" width="16" height="16">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
             </div>
-            <p className={styles.adminRole}>{groupDetails?.admin_role || "Group Admin"}</p>
+            <p className={styles.adminRole}>{adminInfo.role}</p>
             <div className={styles.adminContact}>
-              <span>✉ {groupDetails?.admin_email || "—"}</span>
-              <span>📞 {groupDetails?.admin_phone || "—"}</span>
+              <span>✉ {adminInfo.email}</span>
+              <span>📞 {adminInfo.phone}</span>
             </div>
             <button className={styles.viewProfileBtn}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
@@ -396,17 +566,30 @@ function Members() {
             </button>
           </div>
 
-          {/* Group Overview */}
+          {/* Group Overview - Dynamic Stats */}
           <div className={styles.overviewCard}>
             <h4>Group Overview</h4>
             <div className={styles.overviewGrid}>
-              {groupStats.map((s, i) => (
-                <div key={i} className={styles.overviewItem}>
-                  <span className={styles.overviewIcon}>{s.icon}</span>
-                  <span className={styles.overviewValue}>{s.value}</span>
-                  <span className={styles.overviewLabel}>{s.label}</span>
-                </div>
-              ))}
+              <div className={styles.overviewItem}>
+                <span className={styles.overviewIcon}><Users /></span>
+                <span className={styles.overviewValue}>{tableMembers.length}</span>
+                <span className={styles.overviewLabel}>Total Members</span>
+              </div>
+              <div className={styles.overviewItem}>
+                <span className={styles.overviewIcon}><ClipboardList /></span>
+                <span className={styles.overviewValue}>{totalReported}</span>
+                <span className={styles.overviewLabel}>Complaints</span>
+              </div>
+              <div className={styles.overviewItem}>
+                <span className={styles.overviewIcon}><CheckCircle2 /></span>
+                <span className={styles.overviewValue}>{totalResolved}</span>
+                <span className={styles.overviewLabel}>Resolved</span>
+              </div>
+              <div className={styles.overviewItem}>
+                <span className={styles.overviewIcon}><RefreshCw /></span>
+                <span className={styles.overviewValue}>{Math.max(0, totalReported - totalResolved)}</span>
+                <span className={styles.overviewLabel}>In Progress</span>
+              </div>
             </div>
             <button className={styles.analyticsBtn}>
               View Analytics →
@@ -422,10 +605,10 @@ function Members() {
           <div className={styles.tableHeader}>
             <h3>
               {isUngrouped 
-                ? "Ungrouped Members" 
-                : `Members in Ward ${selectedWardObj?.ward_number || selectedWardId || ""}`
+                ? `Ungrouped Members in ${selectedDistrict}` 
+                : `Members in Ward ${selectedWard || "—"}`
               } 
-              <span>({groupMembers.length})</span>
+              <span>({filteredMembers.length})</span>
             </h3>
             <div className={styles.tableActions}>
               <div className={styles.searchBox}>
@@ -459,7 +642,9 @@ function Members() {
                 onClick={() => setActiveTableTab(t.label)}
               >
                 {t.label}
-                <span className={styles.filterTabCount}>{tabCounts[t.label] || 0}</span>
+                <span className={styles.filterTabCount}>
+                  {t.label === "All Members" ? filteredMembers.length : t.count}
+                </span>
               </button>
             ))}
           </div>
@@ -479,16 +664,14 @@ function Members() {
                 </tr>
               </thead>
               <tbody>
-                {membersLoading ? (
+                {filteredMembers.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "#888" }}>
-                      Loading members...
-                    </td>
-                  </tr>
-                ) : filteredMembers.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "#888" }}>
-                      {isUngrouped ? "No ungrouped members" : "No members found"}
+                    <td colSpan="7" style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
+                      {isUngrouped
+                        ? "No ungrouped members in this district."
+                        : selectedWard
+                        ? "No members found in this ward."
+                        : "Select a ward to view members."}
                     </td>
                   </tr>
                 ) : (
@@ -496,21 +679,21 @@ function Members() {
                     <tr key={m.id}>
                       <td>
                         <div className={styles.memberCell}>
-                          <MemberAvatar initials={getInitials(m.username)} color={getColor(m.email)} status={m.status} />
+                          <MemberAvatar initials={m.initials} color={m.color} status={m.status} />
                           <div className={styles.memberCellInfo}>
-                            <span className={styles.memberCellName}>{m.username}</span>
+                            <span className={styles.memberCellName}>{m.name}</span>
                             <span className={styles.memberCellEmail}>{m.email}</span>
                           </div>
                         </div>
                       </td>
                       <td><RoleBadge role={m.role} /></td>
-                      <td className={styles.cellMuted}>{formatDate(m.joined_at)}</td>
-                      <td className={styles.cellMuted}>{m.contact || "—"}</td>
+                      <td className={styles.cellMuted}>{m.joined}</td>
+                      <td className={styles.cellMuted}>{m.contact}</td>
                       <td><StatusBadge status={m.status} /></td>
                       <td>
                         <div className={styles.activityCell}>
-                          <span>Reported <b>{m.reported || 0}</b></span>
-                          <span>Resolved <b>{m.resolved || 0}</b></span>
+                          <span>Reported <b>{m.reported}</b></span>
+                          <span>Resolved <b>{m.resolved}</b></span>
                         </div>
                       </td>
                       <td>
@@ -533,7 +716,7 @@ function Members() {
           {/* Pagination */}
           <div className={styles.pagination}>
             <span className={styles.pageInfo}>
-              Showing {groupMembers.length > 0 ? 1 : 0} to {filteredMembers.length} of {groupMembers.length} members
+              Showing {filteredMembers.length > 0 ? 1 : 0} to {filteredMembers.length} of {tableMembers.length} members
             </span>
             <div className={styles.pageControls}>
               <button className={styles.pageBtn}>⟨</button>
@@ -541,7 +724,7 @@ function Members() {
               <button className={styles.pageBtn}>⟩</button>
             </div>
             <div className={styles.pageSize}>
-              <span>1 / page</span>
+              <span>{filteredMembers.length} / page</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>

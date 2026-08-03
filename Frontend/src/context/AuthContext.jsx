@@ -1,4 +1,4 @@
-import { useState ,useEffect,useRef} from "react";
+import { useState ,useEffect, useRef, useCallback } from "react";
 import socket from "../socket/socket.js";
 import { AuthContext } from "./CreateContext.jsx";
 import axios from "axios";
@@ -27,8 +27,6 @@ export const AuthProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState({});  // Structure: { "kumar@mail.com": [msg1, msg2, ...], "ravi@mail.com": [...] }
   const [typingUsers, setTypingUsers] = useState({});   // Structure: { 105: true }   -> userId 105 typing pannikitu irukaan
   const [activeChatUser, setActiveChatUser] = useState(null); // Currently ChatBox open panni irukra member (email)
-  const [districts,     setDistricts]     = useState([]);
-  const [wardsByDistrict, setWardsByDistrict] = useState({});
 
   const login = (accessToken) => {
     localStorage.setItem("token", accessToken);
@@ -59,7 +57,6 @@ export const AuthProvider = ({ children }) => {
   setToken(null);
   
 };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,14 +111,6 @@ export const AuthProvider = ({ children }) => {
         const notifRes = await api.get(`/api/auth/notifications`);
         setNotifications(notifRes.data);
 
-        const  districtsRes = await api.get("/api/auth/districts-with-wards");
-        const data = districtsRes.data;
-
-        setWardsByDistrict(data);
-        setDistricts(Object.keys(data).sort());
-        console.log("Ward By District:",wardsByDistrict)
-        console.log("Districts:",districts);
-        console.log("After Sorting :",Object.keys(data).sort());
       } 
       catch (err) {
         console.log("Error:", err);
@@ -139,25 +128,6 @@ export const AuthProvider = ({ children }) => {
     socket.emit("join-room", user.id); //  You need to create a room after logging in.
   }
 }, [user?.id]);
-
-useEffect(() => {
-    socket.on("new-group", ({ district, ward_number, groupId, group_name, member_count }) => {
-      setWardsByDistrict(prev => {
-        const existing = prev[district] || [];
-        const updated = [
-          ...existing,
-          { id: groupId, ward_number, group_name, member_count: member_count || 0 }
-        ].sort((a, b) => Number(a.ward_number) - Number(b.ward_number));
-
-        return { ...prev, [district]: updated };
-      });
-
-      setDistricts(prev =>
-        prev.includes(district) ? prev : [...prev, district].sort()
-      );
-    });
-    return () => socket.off("new-group");
-  }, []);
 
 //  User online
 useEffect(() => {
@@ -193,7 +163,7 @@ useEffect(() => {
   return () => socket.off("user-offline");
 }, []);
 
-  // AuthProvider.jsx
+
 useEffect(() => 
 {
   socket.on("complaint-deleted", (data) =>
@@ -766,13 +736,10 @@ useEffect(() => {
         sendChatMessage,
         setChatMessages,
         markMessagesAsRead,
-        districts,
-        wardsByDistrict,
-        setDistricts,
-        setWardsByDistrict,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+

@@ -36,9 +36,10 @@ const {
      refreshToken, 
      logoutUser,
      createWardGroup,
-     getDistrictsWithWards,
-     getGroupByWard,
-     getGroupMembers,
+     getWardsByDistrict,
+    getGroupByWard,
+    getGroupMembers,
+    getUngroupedMembers
   } = require("../controller/authController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const upload = require("../upload/uploadMiddleware");
@@ -83,10 +84,12 @@ router.post("/creategroup",verifyToken,
     { name: "cover", maxCount: 1 },
   ]),
   createWardGroup
-);
-router.get("/districts-with-wards", verifyToken, getDistrictsWithWards);
-router.get("/ward/:district/:wardNumber", verifyToken, getGroupByWard);   
-router.get("/:groupId/members", verifyToken, getGroupMembers);            
+);        
+
+router.get("/district/:district/wards", verifyToken, getWardsByDistrict);
+router.get("/ward/:district/:wardNumber",verifyToken, getGroupByWard);
+router.get("/:groupId/members",verifyToken, getGroupMembers);
+router.get("/district/:district/ungrouped-members", verifyToken, getUngroupedMembers);
 
 module.exports = router;
 
