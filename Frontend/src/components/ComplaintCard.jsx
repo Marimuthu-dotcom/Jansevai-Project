@@ -18,7 +18,7 @@ function ComplaintCard({ complaint,index }) {
   const [confirmClosing,setConfirmClosing] = useState(false);
 
   const { token, user } = useContext(AuthContext);
-
+  console.log("Complaint Url:",complaint?.image_url)
   const isOwner = complaint?.user_email === user?.email; 
 
   // Delete btn click — dialog காட்டு
@@ -95,6 +95,7 @@ function ComplaintCard({ complaint,index }) {
           pointerEvents:  deleting ? "none" : "auto",
         }}
       >
+        
         {complaint.image_url ? (
           <img src={complaint.image_url} alt={complaint.title} className={styles.cardImg} />
         ) : (

@@ -27,6 +27,24 @@ export const AuthProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState({});  // Structure: { "kumar@mail.com": [msg1, msg2, ...], "ravi@mail.com": [...] }
   const [typingUsers, setTypingUsers] = useState({});   // Structure: { 105: true }   -> userId 105 typing pannikitu irukaan
   const [activeChatUser, setActiveChatUser] = useState(null); // Currently ChatBox open panni irukra member (email)
+  const [membersPage, setMembersPage] = useState({
+    selectedDistrict: "",
+    selectedWard: null,
+    wards: [],
+    currentGroup: null,
+    tableMembers: [],
+    isUngrouped: false,
+    isInitialized: false, // ONE TIME flag
+    error: null,
+    pagination: 
+    {
+    currentPage: 1,
+    pageSize: 5,
+    totalCount: 0,
+    totalPages: 0, 
+    },
+    activeFilter: 'all'
+  });
 
   const login = (accessToken) => {
     localStorage.setItem("token", accessToken);
@@ -56,6 +74,61 @@ export const AuthProvider = ({ children }) => {
   setUser(null);
   setToken(null);
   
+};
+
+  const getAvatarColor = (email) => {
+  const colors = ["#e91212", "#1877e4", "#ed10db", "#f0c909", "#4efc09", "#fa8806", "#512b03", "#4aed0a"];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) 
+    hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitials = (name) => {
+  if (!name) 
+    return "??";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
+
+const formatDate = (mysqlDate) => {
+  if (!mysqlDate) return "-";
+  const d = new Date(mysqlDate);
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const transformMember = (m) => ({
+  id: m.id,
+  name: m.username || "Unknown",
+  email: m.email,
+  initials: getInitials(m.username),
+  color: getAvatarColor(m.email),
+  role: m.role || "Member",
+  is_online:m.is_online,
+  joined: formatDate(m.joined_at),
+  contact: m.contact || "-",
+  status: m.status || "Active",
+  reported: m.reported || 0,
+  resolved: m.resolved || 0,
+});
+
+// ─── API Service ───────────────────────────────────
+const groupApi = {
+  getWardsByDistrict: async (district) => {
+    const res = await api.get(`/api/auth/district/${encodeURIComponent(district)}/wards`);
+    return res.data;
+  },
+  getGroupByWard: async (district, wardNumber) => {
+    const res = await api.get(`/api/auth/ward/${encodeURIComponent(district)}/${wardNumber}`);
+    return res.data;
+  },
+  getGroupMembers: async (groupId, page = 1, limit = 5, filter = 'all') => {
+    const res = await api.get(`/api/auth/${groupId}/members?page=${page}&limit=${limit}&filter=${filter}`);
+    return res.data;
+  },
+  getUngroupedMembers: async (district,page=1,limit=5) => {
+    const res = await api.get(`/api/auth/district/${encodeURIComponent(district)}/ungrouped-members?page=${page}&limit=${limit}`);
+    return res.data;
+  },
 };
 
   useEffect(() => {
@@ -704,6 +777,310 @@ useEffect(() => {
   return () => socket.off("messages-read", handleMessagesRead);
 }, [user?.email]);
 
+  useEffect(() => {
+    if (!user || membersPage.isInitialized) 
+      return;
+
+    const initializeMembersPage = async () => {
+      setMembersPage(prev => ({ ...prev, error: null }));
+
+      try {
+        const userDistrict = user.district || ""; // Thoothukudi
+        const userWard = user.ward_number || null; // 45th ward
+
+        if (!userDistrict) 
+          throw new Error("User district not found");
+
+        // Wards fetch
+        const wardsData = await groupApi.getWardsByDistrict(userDistrict); // [{},{},..]
+        const districtWards = wardsData.wards || []; // 3
+
+        // User ward exist aagutha check
+        const userWardExists = districtWards.some((w) => String(w.ward_number) === String(userWard));
+
+        const targetWard = userWardExists ? userWard : districtWards[0]?.ward_number || null;
+        let membersData = { members: [], totalCount: 0, totalPages: 0 };
+
+        let groupData = null;
+        let transformedMembers = [];
+        let isUngrouped = false;
+
+        // Wards irundha
+        if (districtWards.length > 0 && targetWard)  // (true)
+        {
+          groupData = await groupApi.getGroupByWard(userDistrict, targetWard);
+
+          if (groupData?.id) 
+          {
+            membersData = await groupApi.getGroupMembers(groupData.id, 1, 5, 'all');
+            transformedMembers = (membersData.members || []).map(transformMember);
+          }
+        } 
+        // 4. Wards illana ungrouped
+        else {
+          isUngrouped = true;
+          try {
+            const ungroupedData = await groupApi.getUngroupedMembers(userDistrict, 1, 5);
+            transformedMembers = (ungroupedData.members || []).map(transformMember);
+          } 
+          catch (e) 
+          {
+            console.warn("Ungrouped API not available");
+          }
+        }
+
+        // 5. Global state update (ONE TIME)
+        setMembersPage({
+          selectedDistrict: userDistrict, // Thoothuk/udi
+          selectedWard: targetWard, // 43th
+          wards: districtWards, // [{43},{45},..]
+          currentGroup: groupData, // {id: 12, group_name: "43th Ward", ...}
+          tableMembers: transformedMembers, // [{id: 1, name: "Kumar", email: "}]
+          pagination: {
+            currentPage: 1,
+            pageSize: 5,
+            totalCount: membersData.totalCount || 0,
+            totalPages: membersData.totalPages || 0,
+          },
+          isUngrouped: isUngrouped,
+          isInitialized: true, // 🔒 LOCK - idhu true aagum, init malli run aagadhu
+          error: null,
+          // loading: false,
+        });
+
+      } 
+      catch (err) 
+      {
+        console.error("Init error:", err);
+        setMembersPage(prev => ({
+          ...prev,
+          // loading: false,
+          error: err.response?.data?.message || err.message,
+        }));
+      }
+    };
+
+    initializeMembersPage();
+  }, [user, membersPage.isInitialized]);
+
+  // ─── Manual District Change ─────────────────
+  const handleDistrictChange = useCallback(async (district) => {
+    if (district === membersPage.selectedDistrict) 
+      return;
+
+    setMembersPage(prev => 
+      ({ ...prev, 
+        error: null, 
+        selectedDistrict: district, 
+        selectedWard: null, 
+        tableMembers: [], 
+        currentGroup: null,
+        activeFilter: 'all', 
+        pagination: 
+        { currentPage: 1, pageSize: 5, totalCount: 0, totalPages: 0 }, }
+      )
+    );
+
+    try {
+      const wardsData = await groupApi.getWardsByDistrict(district);
+      const districtWards = wardsData.wards || [];
+
+      if (districtWards.length > 0) {
+        setMembersPage(prev => ({
+          ...prev,
+          wards: districtWards,
+          isUngrouped: false,
+          // loading: false,
+        }));
+      } 
+
+
+      else 
+      {
+        // Wards illana → ungrouped auto load
+        let transformed = [];
+        let ungroupedData = { members: [], totalCount: 0, totalPages: 0 };
+
+        try {
+          ungroupedData = await groupApi.getUngroupedMembers(district, 1, 5);
+          transformed = (ungroupedData.members || []).map(transformMember);
+        } 
+        catch(e) 
+        { 
+          console.warn(e); 
+        }
+
+        setMembersPage(prev => ({
+          ...prev,
+          wards: [],
+          isUngrouped: true,
+          tableMembers: transformed,
+          pagination: 
+         {
+          currentPage: 1,
+          pageSize: 5,
+          totalCount: ungroupedData.totalCount || 0,
+          totalPages: ungroupedData.totalPages || 0,
+         },
+          // loading: false,
+        }));
+      }
+    } 
+    catch (err) 
+    {
+      setMembersPage(prev => ({
+        ...prev,
+        // loading: false,
+        error: err.response?.data?.message || err.message,
+        wards: [],
+      }));
+    }
+  }, [membersPage.selectedDistrict]);
+
+  // ─── Manual Ward Change ─────────────────────
+  const handleWardChange = useCallback(async (wardNumber, page = 1, filter = 'all') => 
+    {
+    if (wardNumber === membersPage.selectedWard) 
+      return;
+
+    setMembersPage(prev => ({ 
+      ...prev, 
+      error: null, 
+      selectedWard: wardNumber, 
+      isUngrouped: false,
+      activeFilter: filter 
+    }));
+
+    try {
+      const groupData = await groupApi.getGroupByWard(membersPage.selectedDistrict, wardNumber);
+      
+      let membersData = { members: [], totalCount: 0, totalPages: 0 };
+      let transformed = [];
+
+      if (groupData?.id) 
+      {
+        membersData = await groupApi.getGroupMembers(groupData.id, page, 5, filter);
+        transformed = (membersData.members || []).map(transformMember);
+      }
+
+      setMembersPage(prev => ({
+        ...prev,
+        currentGroup: groupData,
+        tableMembers: transformed,
+        pagination: {
+        currentPage: membersData.currentPage || page,
+        pageSize: 5,
+        totalCount: membersData.totalCount || 0,
+        totalPages: membersData.totalPages || 0,
+      },
+        // loading: false,
+      }));
+    } 
+    catch (err) 
+    {
+      setMembersPage(prev => ({
+        ...prev,
+        // loading: false,
+        error: err.response?.data?.message || err.message,
+        currentGroup: null,
+        tableMembers: [],
+        pagination: { currentPage: 1, pageSize: 5, totalCount: 0, totalPages: 0 },
+      }));
+    }
+  }, [membersPage.selectedDistrict, membersPage.selectedWard]);
+
+  const handlePageChange = useCallback(async (newPage) => {
+   
+    const { pagination, isUngrouped, selectedWard, selectedDistrict, activeFilter, currentGroup } = membersPage;
+  
+  // Boundary check
+  if (newPage < 1 || newPage > pagination.totalPages) 
+    return;
+  
+  setMembersPage(prev => ({ ...prev, loading: true, error: null }));
+
+  try {
+    let membersData;
+    
+    if (isUngrouped) {
+      // Ungrouped members fetch
+      membersData = await groupApi.getUngroupedMembers(selectedDistrict, newPage, 5);
+    } else if (selectedWard && currentGroup?.id) {
+      // Ward members fetch with page + filter
+      membersData = await groupApi.getGroupMembers(currentGroup.id, newPage, 5, activeFilter);
+    } else {
+      setMembersPage(prev => ({ ...prev, loading: false }));
+      return;
+    }
+
+    const transformed = (membersData.members || []).map(transformMember);
+    
+    setMembersPage(prev => ({
+      ...prev,
+      tableMembers: transformed,
+      pagination: {
+        currentPage: membersData.currentPage || newPage,
+        pageSize: 5,
+        totalCount: membersData.totalCount || 0,
+        totalPages: membersData.totalPages || 0,
+      },
+      loading: false,
+    }));
+    
+  } catch (err) {
+    console.error("Page change error:", err);
+    setMembersPage(prev => ({
+      ...prev,
+      loading: false,
+      error: err.response?.data?.message || err.message,
+    }));
+  }
+}, [membersPage.pagination.totalPages, membersPage.isUngrouped, membersPage.selectedWard, membersPage.selectedDistrict, membersPage.activeFilter, membersPage.currentGroup?.id]);
+
+// ═══════════════════════════════════════════
+// HANDLE FILTER CHANGE (NEW FUNCTION - Tabs ku)
+// ═══════════════════════════════════════════
+const handleMemberFilterChange = useCallback(async (filter) => {
+  // Same page number, but filter change → reset to page 1
+  const { selectedWard, selectedDistrict, isUngrouped, currentGroup } = membersPage;
+  
+  setMembersPage(prev => ({ ...prev, loading: true, error: null, activeFilter: filter }));
+
+  try {
+    let membersData;
+    
+    if (isUngrouped) {
+      membersData = await groupApi.getUngroupedMembers(selectedDistrict, 1, 5);
+    } else if (selectedWard && currentGroup?.id) {
+      membersData = await groupApi.getGroupMembers(currentGroup.id, 1, 5, filter);
+    } else {
+      setMembersPage(prev => ({ ...prev, loading: false }));
+      return;
+    }
+
+    const transformed = (membersData.members || []).map(transformMember);
+    
+    setMembersPage(prev => ({
+      ...prev,
+      tableMembers: transformed,
+      pagination: {
+        currentPage: 1,
+        pageSize: 5,
+        totalCount: membersData.totalCount || 0,
+        totalPages: membersData.totalPages || 0,
+      },
+      loading: false,
+    }));
+    
+  } catch (err) {
+    setMembersPage(prev => ({
+      ...prev,
+      loading: false,
+      error: err.response?.data?.message || err.message,
+    }));
+  }
+}, [membersPage.selectedWard, membersPage.selectedDistrict, membersPage.isUngrouped, membersPage.currentGroup?.id]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -736,6 +1113,11 @@ useEffect(() => {
         sendChatMessage,
         setChatMessages,
         markMessagesAsRead,
+        membersPage,
+        handleDistrictChange,
+        handleWardChange,
+        handlePageChange,
+        handleMemberFilterChange,
       }}
     >
       {children}

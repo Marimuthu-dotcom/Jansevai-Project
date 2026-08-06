@@ -449,6 +449,7 @@ exports.getMyProfile = async (req, res) => {
         LEFT JOIN group_members gm ON u.email = gm.user_email AND gm.status = 'Active'
         LEFT JOIN ward_groups wg ON gm.group_id = wg.id
         WHERE u.email = ?
+        ORDER BY CAST(wg.ward_number AS UNSIGNED) ASC
         LIMIT 1
         `;
 
@@ -2552,8 +2553,9 @@ exports.createWardGroup = async (req, res) => {
     console.log("Cover:",req.files?.cover?.[0]);
 
     // 2. Extract file paths from req.files
-    const logo_url = req.files?.logo?.[0] ? `/uploads/${req.files.logo[0].filename}` : null;
-    const cover_image_url = req.files?.cover?.[0] ? `/uploads/${req.files.cover[0].filename}` : null;
+    const logo_url = req.files?.logo?.[0] ? `${req.protocol}://${req.get("host")}/uploads/complaintImages/${req.files.logo[0].filename}` : null;
+
+    const cover_image_url = req.files?.cover?.[0] ? `${req.protocol}://${req.get("host")}/uploads/complaintImages/${req.files.cover[0].filename}` : null;
 
     // 3. Parse categories JSON string back to array
     let selectedCategoryIds = [];
@@ -2570,8 +2572,8 @@ exports.createWardGroup = async (req, res) => {
         (group_name, ward_number, area_locality, town_city, district, state, 
          pincode, description, visibility, logo_url, cover_image_url, 
          councillor_name, councillor_contact, emergency_contact, max_members, 
-         allow_join_without_approval, enable_discussions, rules_guidelines, admin_email) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         allow_join_without_approval, enable_discussions, rules_guidelines, admin_email, member_count) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         groupName,
         wardNumber,
@@ -2592,6 +2594,7 @@ exports.createWardGroup = async (req, res) => {
         enableDiscussions === "true" || enableDiscussions === true ? 1 : 0,
         rules || null,
         email,
+        1
       ]
     );
 
@@ -2637,7 +2640,7 @@ exports.createWardGroup = async (req, res) => {
 // GET /api/groups/district/:district/wards
 exports.getWardsByDistrict = async (req, res) => {
   try {
-    const { district } = req.params;
+    const { district } = req.params; // Thoothukudi
 
     const [wards] = await db.promise().query(
       `SELECT *
@@ -2648,6 +2651,7 @@ exports.getWardsByDistrict = async (req, res) => {
     );
 
     res.json({ wards });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -2656,7 +2660,7 @@ exports.getWardsByDistrict = async (req, res) => {
 // GET /api/groups/ward/:district/:wardNumber
 exports.getGroupByWard = async (req, res) => {
   try {
-    const { district, wardNumber } = req.params;
+    const { district, wardNumber } = req.params; // Thoothukudi, 45 
 
     const [[group]] = await db.promise().query(
       `SELECT
@@ -2686,29 +2690,71 @@ exports.getGroupByWard = async (req, res) => {
 // GET /api/groups/:groupId/members
 exports.getGroupMembers = async (req, res) => {
   try {
-    const { groupId } = req.params;
+    const { groupId } = req.params; // 1
+    
+    const page = parseInt(req.query.page) || 1; // 1
+    const limit = parseInt(req.query.limit) || 5; // 5
+    const offset = (page - 1) * limit; // (0) * 5 = 0
+
+    const filter = req.query.filter || 'all'; // all
+
+    let whereClause = "WHERE gm.group_id = ?"; // 1
+    const countParams = [groupId]; // [1]
+    const dataParams = [groupId]; // [1]
+
+    if (filter === 'active') 
+    {
+      whereClause += " AND u.is_online = true";
+    }
+    else if (filter === 'inactive')
+    {
+      whereClause += " AND u.is_online = false";
+    } 
+    else if (filter === 'admin')
+    {
+      whereClause += " AND gm.role = 'Admin'";
+    }
+
+    const [[countResult]] = await db.promise().query(
+      `SELECT COUNT(*) as total 
+       FROM group_members gm 
+       JOIN users u ON gm.user_email = u.email 
+       ${whereClause}`,
+      countParams
+    );
+    const totalCount = countResult.total;
 
     const [members] = await db.promise().query(
-      `SELECT
-         gm.id,
-         gm.role,
-         gm.status,
-         gm.joined_at,
-         u.username,
-         u.email,
-         ud.phone_number AS contact,
-         COALESCE(ud.reported, 0) AS reported,
-         COALESCE(ud.resolved, 0) AS resolved
-       FROM group_members gm
-       JOIN users u ON gm.user_email = u.email
-       LEFT JOIN userDetails ud ON gm.user_email = ud.user_email
-       WHERE gm.group_id = ?
-       ORDER BY gm.joined_at DESC`,
-      [groupId]
+      `SELECT 
+      gm.id, 
+      gm.role, 
+      gm.joined_at, 
+      gm.status, 
+      u.username, 
+      u.email, 
+      u.is_online, 
+      u.phone_number AS contact, 
+      COALESCE(ud.reported, 0) AS reported, 
+      COALESCE(ud.resolved, 0) AS resolved 
+      FROM group_members gm 
+      JOIN users u ON gm.user_email = u.email 
+      LEFT JOIN userDetails ud ON gm.user_email = ud.user_email 
+      ${whereClause}
+      ORDER BY gm.joined_at DESC 
+      LIMIT ? OFFSET ?`,
+      [...dataParams, limit, offset]
     );
 
-    res.json({ members });
+    res.json({
+      members,
+      totalCount,
+      currentPage: page,
+      pageSize: limit,
+      totalPages: Math.ceil(totalCount / limit)
+    });
+
   } catch (err) {
+    console.error("Error fetching members:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -2718,26 +2764,47 @@ exports.getUngroupedMembers = async (req, res) => {
   try {
     const { district } = req.params;
 
-    const [members] = await db.promise().query(
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = (page - 1) * limit;
+
+    // Count total
+    const [[countResult]] = await db.promise().query(
       `SELECT 
-         u.id,
-         u.username,
-         u.email,
-         u.role,
-         'Active' AS status,
-         u.created_at AS joined_at,
-         ud.phone_number AS contact,
-         COALESCE(ud.reported, 0) AS reported,
-         COALESCE(ud.resolved, 0) AS resolved
+       COUNT(*) as total 
        FROM users u
        LEFT JOIN userDetails ud ON u.email = ud.user_email
-       WHERE u.district = ? 
-         AND (u.ward IS NULL OR u.ward = '' OR u.ward = '0')
-       ORDER BY u.created_at DESC`,
+       WHERE u.district = ? AND (u.ward_number IS NULL OR u.ward_number = '' OR u.ward_number = '0')`,
       [district]
     );
 
-    res.json({ members });
+    // Paginated data
+    const [members] = await db.promise().query(
+      `SELECT 
+       u.id, 
+       u.username, 
+       u.email, 
+       u.role, 
+       u.is_online, 
+       u.phone_number AS contact, 
+       u.created_at AS joined_at,
+       COALESCE(ud.reported, 0) AS reported,
+       COALESCE(ud.resolved, 0) AS resolved
+       FROM users u LEFT JOIN userDetails ud ON u.email = ud.user_email
+       WHERE u.district = ? AND (u.ward_number IS NULL OR u.ward_number = '' OR u.ward_number = '0')
+       ORDER BY u.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [district, limit, offset]
+    );
+
+    res.json({
+      members,
+      totalCount: countResult.total,
+      currentPage: page,
+      pageSize: limit,
+      totalPages: Math.ceil(countResult.total / limit)
+    });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
