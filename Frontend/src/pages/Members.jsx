@@ -94,6 +94,7 @@ function Members() {
     error,
     pagination,
     activeFilter,
+    tabCounts
   } = membersPage;
 
   // const [activeTableTab, setActiveTableTab] = useState("All Members");
@@ -103,7 +104,8 @@ function Members() {
     let data = [...tableMembers];
     console.log("List of Members:",data);
 
-    if (searchQuery.trim()) {
+    if (searchQuery.trim()) 
+    {
       data = data.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
     return data;
@@ -171,8 +173,8 @@ function Members() {
 
       {/* Stats */}
       <div className={styles.statsRow}>
-        <StatCard icon={<Users/>} label="Total Members" value={tableMembers.length || 0} />
-        <StatCard icon={<BadgeCheck />} label="Active Members" value={activeCount} />
+        <StatCard icon={<Users/>} label="Total Members" value={tabCounts.all || 0} />
+        <StatCard icon={<BadgeCheck />} label="Active Members" value={tabCounts.active || 0} />
         <StatCard icon={<Network />} label="Groups" value={wards.length || 0} />
       </div>
 
@@ -269,7 +271,7 @@ function Members() {
             <div className={styles.overviewGrid}>
               <div className={styles.overviewItem}>
                 <span className={styles.overviewIcon}><Users /></span>
-                <span className={styles.overviewValue}>{tableMembers.length}</span>
+                <span className={styles.overviewValue}>{tabCounts.all}</span>
                 <span className={styles.overviewLabel}>Total Members</span>
               </div>
               <div className={styles.overviewItem}>
@@ -297,7 +299,7 @@ function Members() {
           <div className={styles.tableHeader}>
             <h3>
               {isUngrouped ? `Ungrouped Members in ${selectedDistrict}` : `Members in Ward ${selectedWard || "—"}`}
-              <span>({tableMembers.length})</span>
+              <span>({membersPage.tabCounts.all || 0})</span>
             </h3>
             <div className={styles.tableActions}>
               <div className={styles.searchBox}>
@@ -321,7 +323,7 @@ function Members() {
             {TABLE_TABS.map((t) => (
               <button key={t.label} className={`${styles.filterTab} ${activeFilter=== t.filter ? styles.filterTabActive : ""}`} onClick={() => handleMemberFilterChange(t.filter)}>
                 {t.label}
-                <span className={styles.filterTabCount}>{activeFilter === t.filter ? totalCount : 0}</span>
+                <span className={styles.filterTabCount}>{membersPage.tabCounts[t.filter] || 0}</span>
               </button>
             ))}
           </div>

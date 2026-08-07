@@ -20,9 +20,9 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.pageTitleBlock h1 {
-  font-size: 28px;
-  font-weight: 600;
+.pageTitleBlock h2 {
+  font-size: 25px;
+  font-weight: 800;
   color: #0f172a;
   margin: 0 0 8px 0;
 }
@@ -34,7 +34,7 @@
 }
 
 .backBtn {
-  background: linear-gradient(135deg,rgb(235, 102, 7),rgb(223, 12, 12));
+  background-color: rgb(223, 12, 12);
   border: none;
   border-radius: 8px;
   padding: 8px 14px;
@@ -49,7 +49,7 @@
 }
 
 .backBtn:hover {
-  background: #c60202;
+  background-color: rgb(188, 8, 8);
   color: white;
 }
 
@@ -120,8 +120,8 @@
 /* Members Grid */
 .membersGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
 .memberInviteCard {
@@ -176,7 +176,7 @@
 }
 
 .memberName {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 4px 0;

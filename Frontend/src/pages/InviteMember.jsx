@@ -74,7 +74,7 @@ function InviteMember() {
        
         <div className={styles.pageHeader}>
           <div className={styles.pageTitleBlock}>
-            <h1 className={styles.pageTitle}>Invite Members</h1>
+            <h2 className={styles.pageTitle}>Invite Members</h2>
             <p className={styles.pageSubtitle}>Search and invite members to your team</p>
           </div>
           

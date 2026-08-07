@@ -43,7 +43,14 @@ export const AuthProvider = ({ children }) => {
     totalCount: 0,
     totalPages: 0, 
     },
-    activeFilter: 'all'
+    activeFilter: 'all',
+    tabCounts: 
+    { 
+      all: 0, 
+      active: 0, 
+      admin: 0, 
+      inactive: 0 
+    },
   });
 
   const login = (accessToken) => {
@@ -836,6 +843,7 @@ useEffect(() => {
           wards: districtWards, // [{43},{45},..]
           currentGroup: groupData, // {id: 12, group_name: "43th Ward", ...}
           tableMembers: transformedMembers, // [{id: 1, name: "Kumar", email: "}]
+          tabCounts: membersData.tabCounts || { all: 0, active: 0, admin: 0, inactive: 0 },
           pagination: {
             currentPage: 1,
             pageSize: 5,
@@ -877,7 +885,9 @@ useEffect(() => {
         currentGroup: null,
         activeFilter: 'all', 
         pagination: 
-        { currentPage: 1, pageSize: 5, totalCount: 0, totalPages: 0 }, }
+        { currentPage: 1, pageSize: 5, totalCount: 0, totalPages: 0 }, 
+        tabCounts: { all: 0, active: 0, admin: 0, inactive: 0 },
+      }
       )
     );
 
@@ -922,7 +932,7 @@ useEffect(() => {
           totalCount: ungroupedData.totalCount || 0,
           totalPages: ungroupedData.totalPages || 0,
          },
-          // loading: false,
+         tabCounts:{ all: 0, active: 0, admin: 0, inactive: 0 },          // loading: false,
         }));
       }
     } 
@@ -954,7 +964,7 @@ useEffect(() => {
     try {
       const groupData = await groupApi.getGroupByWard(membersPage.selectedDistrict, wardNumber);
       
-      let membersData = { members: [], totalCount: 0, totalPages: 0 };
+      let membersData = { members: [], totalCount: 0, totalPages: 0, tabCounts:{ all: 0, active: 0, admin: 0, inactive: 0 } };
       let transformed = [];
 
       if (groupData?.id) 
@@ -963,16 +973,19 @@ useEffect(() => {
         transformed = (membersData.members || []).map(transformMember);
       }
 
+      console.log("Members Recors:",membersData);""
       setMembersPage(prev => ({
         ...prev,
         currentGroup: groupData,
         tableMembers: transformed,
-        pagination: {
+        pagination: 
+        {
         currentPage: membersData.currentPage || page,
         pageSize: 5,
         totalCount: membersData.totalCount || 0,
         totalPages: membersData.totalPages || 0,
-      },
+        },
+        tabCounts: membersData.tabCounts || { all: 0, active: 0, admin: 0, inactive: 0 },
         // loading: false,
       }));
     } 
@@ -1018,6 +1031,7 @@ useEffect(() => {
     setMembersPage(prev => ({
       ...prev,
       tableMembers: transformed,
+      tabCounts: membersData.tabCounts || { all: 0, active: 0, admin: 0, inactive: 0 },
       pagination: {
         currentPage: membersData.currentPage || newPage,
         pageSize: 5,
@@ -1044,16 +1058,25 @@ const handleMemberFilterChange = useCallback(async (filter) => {
   // Same page number, but filter change → reset to page 1
   const { selectedWard, selectedDistrict, isUngrouped, currentGroup } = membersPage;
   
-  setMembersPage(prev => ({ ...prev, loading: true, error: null, activeFilter: filter }));
+  setMembersPage(prev => 
+    ({ ...prev,  
+      error: null, 
+      activeFilter: filter 
+    }));
 
   try {
     let membersData;
     
-    if (isUngrouped) {
+    if (isUngrouped) 
+    {
       membersData = await groupApi.getUngroupedMembers(selectedDistrict, 1, 5);
-    } else if (selectedWard && currentGroup?.id) {
+    } 
+    else if (selectedWard && currentGroup?.id) 
+    {
       membersData = await groupApi.getGroupMembers(currentGroup.id, 1, 5, filter);
-    } else {
+    } 
+    else 
+    {
       setMembersPage(prev => ({ ...prev, loading: false }));
       return;
     }
@@ -1063,19 +1086,20 @@ const handleMemberFilterChange = useCallback(async (filter) => {
     setMembersPage(prev => ({
       ...prev,
       tableMembers: transformed,
+      tabCounts: membersData.tabCounts || { all: 0, active: 0, admin: 0, inactive: 0 },
       pagination: {
         currentPage: 1,
         pageSize: 5,
         totalCount: membersData.totalCount || 0,
         totalPages: membersData.totalPages || 0,
       },
-      loading: false,
     }));
     
-  } catch (err) {
+  } 
+  catch (err) 
+  {
     setMembersPage(prev => ({
       ...prev,
-      loading: false,
       error: err.response?.data?.message || err.message,
     }));
   }

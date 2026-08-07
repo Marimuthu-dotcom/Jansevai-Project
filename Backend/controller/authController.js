@@ -2698,7 +2698,8 @@ exports.getGroupMembers = async (req, res) => {
 
     const filter = req.query.filter || 'all'; // all
 
-    let whereClause = "WHERE gm.group_id = ?"; // 1
+    let whereClause = "WHERE gm.group_id = ?"; 
+
     const countParams = [groupId]; // [1]
     const dataParams = [groupId]; // [1]
 
@@ -2722,6 +2723,7 @@ exports.getGroupMembers = async (req, res) => {
        ${whereClause}`,
       countParams
     );
+
     const totalCount = countResult.total;
 
     const [members] = await db.promise().query(
@@ -2745,12 +2747,30 @@ exports.getGroupMembers = async (req, res) => {
       [...dataParams, limit, offset]
     );
 
+    const [[tabCountsResult]] = await db.promise().query(
+      `SELECT 
+         COUNT(*) as all_count,
+         SUM(CASE WHEN u.is_online = true THEN 1 ELSE 0 END) as active_count,
+         SUM(CASE WHEN gm.role = 'Admin' THEN 1 ELSE 0 END) as admin_count,
+         SUM(CASE WHEN u.is_online = false THEN 1 ELSE 0 END) as inactive_count
+       FROM group_members gm 
+       JOIN users u ON gm.user_email = u.email 
+       WHERE gm.group_id = ?`,
+      [groupId]
+    );
+
     res.json({
       members,
       totalCount,
       currentPage: page,
       pageSize: limit,
-      totalPages: Math.ceil(totalCount / limit)
+      totalPages: Math.ceil(totalCount / limit),
+      tabCounts: {
+        all: tabCountsResult.all_count || 0,
+        active: tabCountsResult.active_count || 0,
+        admin: tabCountsResult.admin_count || 0,
+        inactive: tabCountsResult.inactive_count || 0,
+      }
     });
 
   } catch (err) {
@@ -2770,10 +2790,8 @@ exports.getUngroupedMembers = async (req, res) => {
 
     // Count total
     const [[countResult]] = await db.promise().query(
-      `SELECT 
-       COUNT(*) as total 
-       FROM users u
-       LEFT JOIN userDetails ud ON u.email = ud.user_email
+      `SELECT COUNT(*) as total 
+       FROM users u LEFT JOIN userDetails ud ON u.email = ud.user_email
        WHERE u.district = ? AND (u.ward_number IS NULL OR u.ward_number = '' OR u.ward_number = '0')`,
       [district]
     );
@@ -2797,12 +2815,29 @@ exports.getUngroupedMembers = async (req, res) => {
       [district, limit, offset]
     );
 
+    const [[tabCountsResult]] = await db.promise().query(
+      `SELECT 
+         COUNT(*) as all_count,
+         SUM(CASE WHEN u.is_online = true THEN 1 ELSE 0 END) as active_count,
+         SUM(CASE WHEN u.role = 'Admin' THEN 1 ELSE 0 END) as admin_count,
+         SUM(CASE WHEN u.is_online = false THEN 1 ELSE 0 END) as inactive_count
+       FROM users u
+       WHERE u.district = ? AND (u.ward_number IS NULL OR u.ward_number = '' OR u.ward_number = '0')`,
+      [district]
+    );
+
     res.json({
       members,
       totalCount: countResult.total,
       currentPage: page,
       pageSize: limit,
-      totalPages: Math.ceil(countResult.total / limit)
+      totalPages: Math.ceil(countResult.total / limit),
+      tabCounts: {
+        all: tabCountsResult.all_count || 0,
+        active: tabCountsResult.active_count || 0,
+        admin: tabCountsResult.admin_count || 0,
+        inactive: tabCountsResult.inactive_count || 0,
+      }
     });
 
   } catch (err) {
