@@ -480,7 +480,7 @@
   font-weight: 700;
   color: #1a1a2e;
   margin: 4px 0 0;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
 }
 
 .logoutMsg {
@@ -488,7 +488,7 @@
   color: #888;
   text-align: center;
   margin: 0;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   line-height: 1.5;
 }
 
@@ -507,7 +507,7 @@
   background: white;
   font-size: 13.5px;
   font-weight: 600;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   cursor: pointer;
   color: #555;
   transition: background 0.2s;
@@ -523,7 +523,7 @@
   color: white;
   font-size: 13.5px;
   font-weight: 700;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   cursor: pointer;
   transition: opacity 0.2s;
 }

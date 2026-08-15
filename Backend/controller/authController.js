@@ -518,11 +518,16 @@ exports.updateProfile = async (req, res) => {
     const userFields = {};
     const userDetailsFields = {};
     console.log(updates);
+
     Object.entries(updates).forEach(([key, value]) => {
 
       if (key === "phone_number") {
         userFields[key] = value;  //users
-      } else {
+      }
+      else if (key === "username") {
+        userFields[key] = value;
+        userDetailsFields[key] = value;
+      }  else {
         userDetailsFields[key] = value;  //userDetails
       }
 
@@ -2668,7 +2673,8 @@ exports.getGroupByWard = async (req, res) => {
          u.username  AS admin_name,
          u.email     AS admin_email,
          u.phone_number     AS admin_phone,
-         u.role      AS admin_role
+         u.role      AS admin_role,
+         u.is_online
        FROM ward_groups wg JOIN users u ON wg.admin_email = u.email
        WHERE wg.district = ? AND wg.ward_number = ?`,
       [district, wardNumber]

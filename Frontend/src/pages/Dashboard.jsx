@@ -169,9 +169,7 @@ function Dashboard() {
   return (
     <div className={styles.mainDashboard}>
       <div className={styles.dashboardHeader}>
-        <div className={styles.searchDiv}>
-          <h2>Dashboard</h2>
-        </div>
+          <h2 className={styles.pageTitle}>Dashboard</h2>
 
         <div className={styles.profileDiv}>
           <div className={styles.notificationDiv} onClick={(e) => { e.stopPropagation(); navigate("/notification") }}>

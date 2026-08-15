@@ -2,7 +2,7 @@
   background-color: white;
   min-height: 100vh;
   padding: 24px;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
 }
 
 .backBtn {
@@ -386,7 +386,7 @@
     color: green;
 }
 .phoneNo{
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   font-size: 13px;
   font-weight: 500;
   color: #676666;
@@ -517,7 +517,7 @@
   justify-content: center;
   min-height: 60vh;
   gap: 14px;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   color: #aaa;
   font-size: 15px;
 }
@@ -561,7 +561,7 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   transition: all 0.2s ease;
 }
 .statusChangeBtn:hover  { opacity: 0.85; transform: translateY(-1px); }
@@ -584,7 +584,7 @@
   font-weight: 600;
   cursor: pointer;
   padding: 4px 0;
-  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:'Inter',sans-serif;;
   transition: opacity 0.2s;
   text-align: left;
 }

@@ -28,7 +28,7 @@
   --agf-radius-lg: 12px;
   --agf-radius-xl: 16px;
 
-  --agf-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --agf-font: 'Inter', sans-serif;
 }
 
 /* ─── Layout ─── */
@@ -98,7 +98,7 @@
 }
 
 .agf-page-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--agf-text-primary);
   margin-bottom: 6px;

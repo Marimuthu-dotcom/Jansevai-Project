@@ -59,7 +59,7 @@ function MemberAvatar({ initials, color, status }) {
   return (
     <div className={styles.avatarWrap}>
       <div className={styles.avatarCircle} style={{ backgroundColor: color }}>{initials}</div>
-      <span className={`${styles.statusDot} ${styles[status.toLowerCase()]}`} />
+      <span className={`${styles.statusDot} ${styles[status?"active":"inactive"]}`} />
     </div>
   );
 }
@@ -136,6 +136,7 @@ function Members() {
     role: "Group Admin",
     email: currentGroup.admin_email || "-",
     phone: currentGroup.councillor_contact || "-",
+    active:Boolean(currentGroup.is_online),
     avatar: currentGroup.logo_url || CM,
     } : { name: "No Admin", role: "-", email: "-", phone: "-", avatar: CM };
 
@@ -244,7 +245,7 @@ function Members() {
             <span className={styles.adminTag}>Group Admin</span>
             <div className={styles.adminAvatar}>
               <img src={adminInfo.avatar} alt={adminInfo.name} />
-              <span className={styles.adminOnline} />
+              <span className={`${styles.admin} ${styles[adminInfo.active?"Online":""]}`} />
             </div>
             <div className={styles.adminNameRow}>
               <h4>{adminInfo.name}</h4>
@@ -345,7 +346,7 @@ function Members() {
                     <tr key={m.id}>
                       <td>
                         <div className={styles.memberCell}>
-                          <MemberAvatar initials={m.initials} color={m.color} status={m.status} />
+                          <MemberAvatar initials={m.initials} color={m.color} status={Boolean(m.is_online)} />
                           <div className={styles.memberCellInfo}>
                             <span className={styles.memberCellName}>{m.name}</span>
                             <span className={styles.memberCellEmail}>{m.email}</span>

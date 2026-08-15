@@ -174,9 +174,8 @@ function Complaints() {
   return (
     <div className={styles1.complaintContainer}>
       <div className={styles1.dashboardHeader}>
-              <div className={styles1.searchDiv}>
-                <h2>Complaints</h2>
-                </div>
+                <h2 className={styles1.pageTitle}>Complaints</h2>
+              
       
             <div className={styles1.profileDiv}>
               <div className={styles1.notificationDiv} onClick={(e) =>{ e.stopPropagation(); navigate("/notification")}}>
