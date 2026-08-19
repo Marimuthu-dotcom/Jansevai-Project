@@ -164,12 +164,12 @@ function Profile() {
                         : "Offline"
                     }
                   >
-                    {GetIntial(member.username)}
+                    {GetIntial(member.name)}
                   </div>
                   <span className={`${styles.onlineDot} ${member.is_online ? styles.online : styles.offline}`} />
                 </div>
                 {/* ✅ Dynamic name */}
-                <h2 className={styles.profileName}>{member.username}</h2>
+                <h2 className={styles.profileName}>{member.name}</h2>
                 <span className={styles.roleBadge}>Volunteer</span>
               </div>
             </div>
@@ -187,7 +187,7 @@ function Profile() {
                   </div>
                   <div className={styles.infoText}>
                     <span className={styles.infoLabel}>Phone</span>
-                    <span className={styles.infoValue}>{member.phone_number?member.phone_number:"----------"}</span>
+                    <span className={styles.infoValue}>{member.contact?member.contact:"----------"}</span>
                   </div>
                 </div>
 
@@ -233,7 +233,7 @@ function Profile() {
                   </div>
                   <div className={styles.infoText}>
                     <span className={styles.infoLabel}>Joined</span>
-                    <span className={styles.infoValue}>{member.created_at?member.created_at.slice(0,10):"----------"}</span>
+                    <span className={styles.infoValue}>{member.date?member.date.slice(0,11):"----------"}</span>
                   </div>
                 </div>
 
@@ -251,7 +251,7 @@ function Profile() {
                   </div>
                 </div>
 
-                {/* ✅ Dynamic — Bio */}
+                {/* ✅ Dynamic — bio */}
                 <div className={styles.infoItem}>
                   <div className={styles.infoIcon}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -266,7 +266,7 @@ function Profile() {
                   <div className={styles.infoText}>
                     <span className={styles.infoLabel}>Bio</span>
                     <span className={styles.infoValue} style={{ whiteSpace: "normal", fontSize: 12 }}>
-                      {member.bio?member.bio:"----------"}
+                      {member.Bio?member.Bio:"----------"}
                     </span>
                   </div>
                 </div>
@@ -323,7 +323,7 @@ function Profile() {
                   <div className={styles.complaintRowInfo}>
                     <div className={styles.complaintRowTitle}>{c.title}</div>
                     <div className={styles.complaintRowMeta}>
-                      {c.category} · {getTimeAgo(c.created_at)}
+                      {c.category} · {getTimeAgo(c.date)}
                     </div>
                   </div>
                   <span className={`${styles.badge} ${getBadgeClass(c.status)}`}>

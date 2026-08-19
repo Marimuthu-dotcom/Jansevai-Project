@@ -157,6 +157,93 @@
 }
 .useLocationBtn:hover { opacity: 0.7; }
 
+/* ── Map Container Styles ── */
+.mapContainer {
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mapTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hideMapBtn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.hideMapBtn:hover {
+  background: #f1f5f9;
+  color: #ef4444;
+}
+
+/* ── FIXED: Map Wrapper Styles ── */
+.mapWrapper {
+  height: 300px;
+  width: 100%;
+  position: relative;
+  background: #e8ecf1;
+  min-height: 300px;
+}
+
+/* Make sure Leaflet map renders properly */
+.mapWrapper .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  z-index: 1;
+  background: #e8ecf1;
+}
+
+.mapFooter {
+  padding: 8px 16px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.coordinates {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #334155;
+}
+/* ── END: Map Container Styles ── */
+
 .textareaWrapper {
   position: relative;
 }
@@ -321,3 +408,43 @@
 .toast.error  
  { border-left: 4px solid #e02020;
    border-right: 4px solid #e02020; }
+
+/* ── Responsive Map Styles ── */
+@media (max-width: 640px) {
+  .locationWrapper .input {
+    padding-right: 12px;
+  }
+  
+  .useLocationBtn {
+    position: static;
+    transform: none;
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    background: #e02020;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .useLocationBtn:hover {
+    background: #c01a1a;
+    opacity: 1;
+  }
+  
+  .mapWrapper {
+    height: 250px;
+    min-height: 250px;
+  }
+  
+  .mapTitle {
+    font-size: 12px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  .mainContainer {
+    padding: 12px;
+  }
+}

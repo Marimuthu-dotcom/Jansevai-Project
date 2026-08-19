@@ -8,7 +8,7 @@ import api from "../api/api.js";
 
 function ChatBox() 
 {
-  const { userEmail } = useParams(); // marimuthuk.ug.24.cs@francisxavier.ac.in
+  const { email } = useParams(); // marimuthuk.ug.24.cs@francisxavier.ac.in
   const navigate = useNavigate();
   const location = useLocation();
   // ✅ Ellame Context-la irundhu vangaraom (AuthProvider.jsx la already irukku)
@@ -22,6 +22,9 @@ function ChatBox()
   useEffect(() => 
   {
     const memberFromState = location.state?.member;
+    console.log(memberFromState, "memberFromState");
+    console.log("Location:", memberFromState?.location);
+  console.log("Contributions:", memberFromState?.contributions);
     if (memberFromState)
     {
       setMember(memberFromState);
@@ -32,13 +35,13 @@ function ChatBox()
 
     // Chat viட்டு poirochunga na, active chat clear pannunga (unread badge logic ku)
     return () => setActiveChatUser(null);
-  }, [userEmail]);
+  }, [email]);
 
   // ✅ STEP 2: Messages - localStorage illama, Context state-la irundhu direct ah edukkuரோம
   const messages = chatMessages[member?.email] || []; // marimuthuk.ug.24.cs@francisxavier.ac.in
 
   // ✅ STEP 3: Typing status - Context la irundhu real-time ah check pannுரோம்
-  const isTyping = member && typingUsers[member.id];  
+  const isTyping = member && typingUsers[member?.id];  
 
   // ChatBox.jsx — add this useEffect
 useEffect(() => {
@@ -47,12 +50,12 @@ useEffect(() => {
 
   // ✅ Mark existing messages as read when chat opens
   api.put(`/api/auth/mark-read`,
-    { otherUserEmail: member.email });
+    { otherUserEmail: member?.email });
 
   // ✅ Update local state instantly — no wait for server
   setChatMessages(prev => ({
     ...prev,
-    [member.email]: (prev[member.email] || []).map(msg => ({
+    [member?.email]: (prev[member?.email] || []).map(msg => ({
       ...msg,
       status: msg.sender_email !== user?.email ? "read" : msg.status
     }))
@@ -66,11 +69,11 @@ useEffect(() => {
     if (message.trim() === "") 
       return;
 
-    await sendChatMessage(member.email, message);   // DB save + socket emit ellame Context handle pannும்
+    await sendChatMessage(member?.email, message);   // DB save + socket emit ellame Context handle pannும்
     setMessage("");
 
     // Message anuppina udane, typing status clear pannunga
-    socket.emit("stop-typing", { receiverId: member.id });
+    socket.emit("stop-typing", { receiverId: member?.id });
     clearTimeout(typingTimeout.current);
   };
 
@@ -78,12 +81,12 @@ useEffect(() => {
   const handleMessageChange = (e) => {
     setMessage(e.target.value);
 
-    socket.emit("typing", { receiverId: member.id });
+    socket.emit("typing", { receiverId: member?.id });
 
     clearTimeout(typingTimeout.current);
     
     typingTimeout.current = setTimeout(() => {
-      socket.emit("stop-typing", { receiverId: member.id });
+      socket.emit("stop-typing", { receiverId: member?.id });
     }, 3000);
   };
 
@@ -136,15 +139,15 @@ useEffect(() => {
         <div className={styles.headerInfo}>
           <div 
             className={styles.headerAvatar}
-            style={{ background: GetAvatarColor(member.username.charAt(0)) }}
+            style={{ background: GetAvatarColor(member?.name?.charAt(0)) }}
           >
-            {member.username.charAt(0)}
+            {member?.name?.charAt(0)}
           </div>
           <div className={styles.headerDetails}>
-            <h2 className={styles.headerName}>{member.username.toUpperCase()}</h2>
+            <h2 className={styles.headerName}>{member?.name?.toUpperCase()}</h2>
             <div className={styles.headerStatus}>
-              <span className={`${styles.statusDot} ${member.is_online ? styles.online : styles.offline}`} />
-              <span>{member.is_online ? "Online" : "Offline"}</span>
+              <span className={`${styles.statusDot} ${member?.is_online ? styles.online : styles.offline}`} />
+              <span>{member?.is_online ? "Online" : "Offline"}</span>
             </div>
           </div>
         </div>
@@ -166,10 +169,10 @@ useEffect(() => {
           </svg>
         </div>
         <div className={styles.bannerContent}>
-          <h4>📍 {member.location}</h4>
-          <p>Volunteer • {member.contributions} contributions • {member.resolved} resolved</p>
+          <h4>📍 {member?.location}</h4>
+          <p>{member.role} • {member?.contributions} contributions • {member?.resolved} resolved</p>
         </div>
-        <button className={styles.bannerBtn} onClick={() => navigate(`/profile/${member.email}`,{
+        <button className={styles.bannerBtn} onClick={() => navigate(`/profile/${member?.email}`,{
           state: { member: member }
         })}>
           View Profile
@@ -194,9 +197,9 @@ useEffect(() => {
                   {!isOwnMessage && (
                     <div 
                       className={styles.messageAvatar}
-                      style={{ background: GetAvatarColor(member.username.charAt(0)) }}
+                      style={{ background: GetAvatarColor(member?.name?.charAt(0)) }}
                     >
-                      {member.username.charAt(0)}
+                      {member?.name?.charAt(0)}
                     </div>
                   )}
                   <div className={styles.messageBubble}>
@@ -229,9 +232,9 @@ useEffect(() => {
             <div className={`${styles.messageRow} ${styles.otherMessage}`}>
               <div 
                 className={styles.messageAvatar}
-                style={{ background: GetAvatarColor(member.username.charAt(0)) }}
+                style={{ background: GetAvatarColor(member?.name?.charAt(0)) }}
               >
-                {member.username.charAt(0)}
+                {member?.name?.charAt(0)}
               </div>
               <div className={styles.typingIndicator}>
                 <span></span>
@@ -253,7 +256,7 @@ useEffect(() => {
           </button>
           <textarea
             className={styles.messageInput}
-            placeholder={`Message to ${member.username}...`}
+            placeholder={`Message to ${member?.name}...`}
             value={message}
             onChange={handleMessageChange}
             onKeyPress={handleKeyPress}

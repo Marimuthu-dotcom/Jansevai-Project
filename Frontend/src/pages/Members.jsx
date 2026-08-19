@@ -249,9 +249,6 @@ function Members() {
             </div>
             <div className={styles.adminNameRow}>
               <h4>{adminInfo.name}</h4>
-              <svg className={styles.shieldIcon} viewBox="0 0 24 24" fill="#e02020" width="16" height="16">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
             </div>
             <p className={styles.adminRole}>{adminInfo.role}</p>
             <div className={styles.adminContact}>
@@ -365,7 +362,9 @@ function Members() {
                       </td>
                       <td>
                         <div className={styles.actionCell}>
-                          <button className={styles.msgBtn}>
+                          <button className={styles.msgBtn} onClick = {()=> navigate(`/chat-box/${m.email}`,{
+                              state: { member: m }
+                          })}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                             </svg>

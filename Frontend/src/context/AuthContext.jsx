@@ -113,9 +113,16 @@ const transformMember = (m) => ({
   is_online:m.is_online,
   joined: formatDate(m.joined_at),
   contact: m.contact || "-",
+  location: m.location || "Unknown",
   status: m.status || "Active",
+  role:m.role|| "Member",
   reported: m.reported || 0,
   resolved: m.resolved || 0,
+  contributions: m.contributions || 0,
+  age: m.age || null,
+  gender:m.gender || null,
+  date: formatDate(m.date) || null,
+  Bio: m.bio || null
 });
 
 // ─── API Service ───────────────────────────────────
@@ -973,7 +980,7 @@ useEffect(() => {
         transformed = (membersData.members || []).map(transformMember);
       }
 
-      console.log("Members Recors:",membersData);""
+      console.log("Members Recors:",membersData);
       setMembersPage(prev => ({
         ...prev,
         currentGroup: groupData,

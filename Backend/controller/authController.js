@@ -601,7 +601,7 @@ exports.updateProfile = async (req, res) => {
 exports.createComplaint = async (req, res) => {
 
   try {
-    const { category,title,location,description } = req.body;
+    const { category,title,location,wardNo,description } = req.body;
 
     const userEmail = req.user.email;
 
@@ -668,10 +668,11 @@ exports.createComplaint = async (req, res) => {
         category,
         title,
         location,
+        wardNo,
         description,
         image_url
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         userEmail,
@@ -680,6 +681,7 @@ exports.createComplaint = async (req, res) => {
         category,
         title,
         location,
+        wardNo,
         description,
         imageUrl
       ]
@@ -796,6 +798,7 @@ await db.promise().query(
       category,
       title,
       location,
+      wardNo,
       description,
       image_url: imageUrl,
       status: "Pending",
@@ -838,7 +841,8 @@ await db.promise().query(
 
     let mostActiveCategory = "None";
 
-    if (categoryRows.length > 0) {
+    if (categoryRows.length > 0) 
+    {
       const max = categoryRows.reduce((a, b) =>
         a.count > b.count ? a : b
       );
@@ -989,6 +993,7 @@ exports.getComplaints = async (req, res) => {
         c.username,
         c.phone_number,
         c.location,
+        c.wardNo,
         c.description,
         c.image_url,
         c.resolved_url,
@@ -997,19 +1002,15 @@ exports.getComplaints = async (req, res) => {
         c.support_count,
         c.comments_count,
         c.created_at,
-
         CASE
           WHEN cl.user_email IS NOT NULL THEN true
           ELSE false
         END AS isLiked
-
-      FROM complaints c
-
-      LEFT JOIN complaint_likes cl
-      ON c.id = cl.complaint_id
-      AND cl.user_email = ?
-
-      ORDER BY c.created_at ASC
+        FROM complaints c
+        LEFT JOIN complaint_likes cl
+        ON c.id = cl.complaint_id
+        AND cl.user_email = ?
+        ORDER BY c.created_at ASC
     `;
 
     const [result] =
@@ -1028,7 +1029,7 @@ exports.getMyComplaints = async (req, res) => {
  try{
     const userEmail = req.user.email;
 
-     const sql = `SELECT id,title,category,location,status,created_at 
+     const sql = `SELECT id,title,category,location,wardNo,status,created_at 
                  FROM complaints
                  WHERE user_email = ? 
                  ORDER BY created_at DESC`;
@@ -1191,6 +1192,7 @@ exports.getMemberActivities = async(req,res) =>{
       id,
       title,
       status,
+      wardNo,
       updated_at
     FROM complaints
     WHERE user_email = ?
@@ -2738,12 +2740,19 @@ exports.getGroupMembers = async (req, res) => {
       gm.role, 
       gm.joined_at, 
       gm.status, 
+      gm.role,
       u.username, 
       u.email, 
       u.is_online, 
       u.phone_number AS contact, 
+      ud.location AS location,
+      ud.age AS age,
+      ud.gender AS gender,
+      ud.joined_date AS date,
+      ud.bio AS bio,
       COALESCE(ud.reported, 0) AS reported, 
-      COALESCE(ud.resolved, 0) AS resolved 
+      COALESCE(ud.resolved, 0) AS resolved,
+      COALESCE(ud.contributions, 0) AS contributions
       FROM group_members gm 
       JOIN users u ON gm.user_email = u.email 
       LEFT JOIN userDetails ud ON gm.user_email = ud.user_email 
@@ -2812,8 +2821,10 @@ exports.getUngroupedMembers = async (req, res) => {
        u.is_online, 
        u.phone_number AS contact, 
        u.created_at AS joined_at,
+       ud.location AS location,
        COALESCE(ud.reported, 0) AS reported,
-       COALESCE(ud.resolved, 0) AS resolved
+       COALESCE(ud.resolved, 0) AS resolved,
+       COALESCE(ud.contributions, 0) AS contributions
        FROM users u LEFT JOIN userDetails ud ON u.email = ud.user_email
        WHERE u.district = ? AND (u.ward_number IS NULL OR u.ward_number = '' OR u.ward_number = '0')
        ORDER BY u.created_at DESC
