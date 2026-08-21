@@ -5,7 +5,6 @@ import ConfirmDialog from "../components/ConfirmDialog"; // ✅ import
 import { useNavigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/CreateContext";
-import { getOrdinal } from "../pages/Complaint.jsx";
 import api from "../api/api.js";
 
 function ComplaintCard({ complaint,index }) {
@@ -148,7 +147,7 @@ function ComplaintCard({ complaint,index }) {
               <path d="M10 14h4" />
               <path d="M10 18h4" />
             </svg>
-            {`Ward: ${getOrdinal(1326)||"1326th Ward"}`}
+            {`Ward: ${complaint.wardNo||"1326th Ward"}`}
           </div>
 
           <div className={styles.cardFooter}>

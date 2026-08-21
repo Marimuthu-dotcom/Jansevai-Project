@@ -602,6 +602,7 @@ exports.createComplaint = async (req, res) => {
 
   try {
     const { category,title,location,wardNo,description } = req.body;
+    console.log("WardNo:",wardNo)
 
     const userEmail = req.user.email;
 

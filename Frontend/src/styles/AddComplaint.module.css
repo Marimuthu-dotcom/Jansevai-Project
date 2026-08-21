@@ -409,7 +409,185 @@
  { border-left: 4px solid #e02020;
    border-right: 4px solid #e02020; }
 
-/* ── Responsive Map Styles ── */
+/* ── New: Location Source Selector ── */
+.locationSourceSelector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.sourceBtn {
+  padding: 6px 14px;
+  border: 2px solid #e2e5ef;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: #4f4e4e;
+  font-family: 'Inter', sans-serif;
+}
+
+.sourceBtn.active {
+  background: #e02020;
+  color: white;
+  border-color: #e02020;
+}
+
+.sourceBtn:hover:not(.active) {
+  border-color: #e02020;
+  background: #fff5f5;
+}
+
+/* ── New: Search Wrapper ── */
+.searchWrapper {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #e2e5ef;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fafbfd;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.searchInput:focus {
+  border-color: #aeabab;
+  box-shadow: 0 0 0 3px rgba(224,32,32,0.08);
+  background: #fff;
+}
+
+.searchBtn {
+  padding: 8px 20px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+}
+
+.searchBtn:hover {
+  background: #059669;
+  transform: scale(1.02);
+}
+
+.searchBtn:active {
+  transform: scale(0.98);
+}
+
+/* ── New: Manual Hint in Map Footer ── */
+.manualHint {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 500;
+  margin-left: 16px;
+  background: #eef2ff;
+  padding: 2px 12px;
+  border-radius: 12px;
+}
+
+/* ── Updated: Map Footer for better layout ── */
+.mapFooter {
+  padding: 8px 16px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ── Updated: Responsive adjustments ── */
+@media (max-width: 640px) {
+  .locationWrapper .input {
+    padding-right: 12px;
+  }
+
+  .useLocationBtn {
+    position: static;
+    transform: none;
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    background: #e02020;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  .useLocationBtn:hover {
+    background: #c01a1a;
+    opacity: 1;
+  }
+
+  .locationSourceSelector {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sourceBtn {
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .searchWrapper {
+    flex-direction: column;
+  }
+
+  .searchBtn {
+    width: 100%;
+  }
+
+  .mapWrapper {
+    height: 250px;
+    min-height: 250px;
+  }
+
+  .mapTitle {
+    font-size: 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .mainContainer {
+    padding: 12px;
+  }
+
+  .manualHint {
+    font-size: 10px;
+    margin-left: 0;
+    margin-top: 4px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .mapFooter {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+}
 @media (max-width: 640px) {
   .locationWrapper .input {
     padding-right: 12px;

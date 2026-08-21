@@ -301,9 +301,10 @@ function Dashboard() {
                         </div>
                         <div className={styles.recentComplaintBadges}>
                           <span className={styles.categoryBadge}>
-                            <Droplets size={12} color="#3b82f6" />
+                            <Droplets size={14} color="#3b82f6" />
                             {c.category}
                           </span>
+                          <span className={`${styles.idBadge} ${styles.ward}`}>Ward: {c.wardNo}</span>
                           <span className={styles.idBadge}>ID: #{c.id}</span>
                         </div>
                       </div>
@@ -335,7 +336,7 @@ function Dashboard() {
                         {c.status}
                       </div>
                      <div className={styles.statItemTime}>
-                          <Clock size={14} color="#9ca3af" />
+                          <div style={{ paddingBottom:"5px"}}><Clock size={14} color="#9ca3af" /></div>
                           <div className={styles.timeGroup}>
                             <span className={styles.timeAgo}>{getTimeAgo(c.created_at)} ago</span>
                             <span className={styles.timeDate}>{formatDate(c.created_at)}</span>
