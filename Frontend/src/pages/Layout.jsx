@@ -84,7 +84,7 @@ function Layout() {
 ];
 
    const[closing,setClosing]=useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
    const [isLoggingOut, setIsLoggingOut] = useState(false);
    const showLogin = !token && !isLoggingOut;
 

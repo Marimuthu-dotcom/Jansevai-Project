@@ -601,7 +601,7 @@ exports.updateProfile = async (req, res) => {
 exports.createComplaint = async (req, res) => {
 
   try {
-    const { category,title,location,wardNo,description } = req.body;
+    const { category,title,location,wardNo,description,latitude,longitude } = req.body;
     console.log("WardNo:",wardNo)
 
     const userEmail = req.user.email;
@@ -669,11 +669,13 @@ exports.createComplaint = async (req, res) => {
         category,
         title,
         location,
+        latitude,
+        longitude,
         wardNo,
         description,
         image_url
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         userEmail,
@@ -682,6 +684,8 @@ exports.createComplaint = async (req, res) => {
         category,
         title,
         location,
+        latitude,
+        longitude,
         wardNo,
         description,
         imageUrl
@@ -799,6 +803,8 @@ await db.promise().query(
       category,
       title,
       location,
+      latitude,
+      longitude,
       wardNo,
       description,
       image_url: imageUrl,
@@ -994,6 +1000,8 @@ exports.getComplaints = async (req, res) => {
         c.username,
         c.phone_number,
         c.location,
+        c.latitude,
+        c.longitude,
         c.wardNo,
         c.description,
         c.image_url,

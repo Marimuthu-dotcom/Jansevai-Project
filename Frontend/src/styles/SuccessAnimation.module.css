@@ -1,0 +1,134 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  animation: fadeInContainer 0.5s ease-out;
+  min-height: 350px;
+}
+
+@keyframes fadeInContainer {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.circleContainer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progressRing {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+}
+
+.ringBackground {
+  stroke: #e8f5e9;
+}
+
+.ringProgress {
+  stroke: #4CAF50;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+
+.ringProgress.animate {
+  stroke-dashoffset: 0;
+}
+
+.checkmarkContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.checkmarkContainer.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.checkmark {
+  width: 60px;
+  height: 60px;
+}
+
+.checkmarkCircle {
+  stroke-dasharray: 157;
+  stroke-dashoffset: 157;
+  animation: drawCircle 0.6s ease-out 0.9s forwards;
+}
+
+.checkmarkCheck {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: drawCheck 0.4s ease-out 1.2s forwards;
+}
+
+@keyframes drawCircle {
+  0% {
+    stroke-dashoffset: 157;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  0% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.successText {
+  margin-top: 25px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 1.4s;
+}
+
+.successText.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.successText h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2e7d32;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.successText p {
+  font-size: 14px;
+  color: #888;
+  margin: 8px 0 0 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}

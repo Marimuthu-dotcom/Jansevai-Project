@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, ThumbsUp ,ChevronDown, ChevronUp} from "lucide-react";
 import GetAvatarColor from "../components/GetAvatarColor.jsx";
 import WarningToast from "../components/WarningToast.jsx";
+import MapComponent from "../components/MapComponent.jsx";
 import styles from "../styles/ComplaintDetails.module.css";
 import { AuthContext } from "../context/CreateContext";
 import api from "../api/api.js";
@@ -60,6 +61,7 @@ function ComplaintDetails() {
 
   //  useState இல்லை — complaints மாறும்போது automatically update
   const complaint = complaints.find((c) => c.id === Number(id)) || null;
+  console.log(complaint);
 
   //  Cache-லயிருந்து derive
   const comments     = commentsCache[id]              || [];
@@ -149,10 +151,10 @@ function ComplaintDetails() {
       }
     };
   
-   useEffect(() => {
+   /* useEffect(() => {
     setLiked(Boolean(complaint.isLiked));
     setLikes(complaint.likes_count);
-  }, [complaint.isLiked, complaint.likes_count]);
+  }, [complaint.isLiked, complaint.likes_count]); */
 
   //  Support — socket cache update பண்ணும், setSupported வேண்டாம்
   const handleSupport = async () => {
@@ -332,42 +334,14 @@ const hiddenCount     = comments.length - 2;
               </div>
 
               <div className={styles.divider} />
+              <p className={styles.sectionLabel}>Location</p>
+              <MapComponent 
+                latitude={complaint.latitude}
+                longitude={complaint.longitude}
+                locationName={complaint.location}
+              />
               <p className={styles.sectionLabel}>Description</p>
               <p className={styles.description}>{complaint.description}</p>
-
-              {currentStatus === "Resolved" && complaint.resolved_url && (
-              <div style={{ marginTop: 12 }}>
-                
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    cursor: "pointer"
-                  }}
-                  onClick={() => setShowProof(prev => !prev)}
-                >
-                  <p className={styles.proofLabel}>Resolution Proof</p>
-
-                  <span style={{ fontSize: "20px" }}>
-                    {showProof ? <ChevronUp/> : <ChevronDown />}
-                  </span>
-                </div>
-
-                {showProof && (
-                  <img
-                    src={complaint.resolved_url}
-                    alt="Resolved"
-                    className={styles.mainImg}
-                    style={{
-                      width: "100%",
-                      borderRadius: "10px",
-                      marginTop: "20px"
-                    }}
-                  />
-                )}
-              </div>
-            )}
 
               <div className={styles.actionBar}>
                 <button
@@ -446,7 +420,6 @@ const hiddenCount     = comments.length - 2;
         </div>
 
         <div className={styles.rightCol}>
-
           {/* Assigned To */}
           <div className={styles.rightCard}>
             <p className={styles.rightCardTitle}>Assigned By</p>
@@ -474,6 +447,41 @@ const hiddenCount     = comments.length - 2;
               </div>
             </div>
           </div>
+
+          {currentStatus === "Resolved" && complaint.resolved_url && (
+              <div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => setShowProof(prev => !prev)}
+                >
+                  <p className={styles.proofLabel}>Resolution Proof</p>
+
+                  <span style={{ fontSize: "20px" }}>
+                    {showProof ? <ChevronUp/> : <ChevronDown />}
+                  </span>
+                </div> 
+
+                {showProof && (
+                  <div style={{height:"185px"}}>
+                  <img
+                    src={complaint.resolved_url}
+                    alt="Resolved"
+                    className={styles.mainImg}
+                    style={{
+                      width: "100%",
+                      borderRadius: "10px",
+                      marginTop: "10px"
+                    }}
+                  />
+                  </div>
+                )}
+              </div>
+            )}
 
           {/* Support Card */}
           <div className={styles.rightCard}>

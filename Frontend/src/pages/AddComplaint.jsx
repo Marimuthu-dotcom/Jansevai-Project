@@ -49,6 +49,8 @@ function AddComplaint() {
     wardNo: "",
     location: "",
     description: "",
+    latitude:"",
+    longitude:""
   });
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
@@ -131,6 +133,7 @@ function AddComplaint() {
           );
           const data = await res.json();
 
+          console.log("Detected Location:", data);
           const suburb = data.address.suburb
             || data.address.village
             || data.address.town
@@ -145,7 +148,7 @@ function AddComplaint() {
             .filter(Boolean)
             .join(", ");
 
-          setForm((f) => ({ ...f, location: locationStr }));
+          setForm((f) => ({ ...f, location: locationStr, latitude: posObj.lat, longitude: posObj.lng}));
           showToast("📍 Location detected! Map loaded below.", "success");
 
         } catch {
@@ -166,7 +169,8 @@ function AddComplaint() {
 
   // ── New: Handle map click for manual location ──
   const handleMapClick = async (e) => {
-  if (!isManualSelection) return;
+  if (!isManualSelection) 
+    return;
 
   const { lat, lng } = e.latlng;
 
@@ -176,39 +180,41 @@ function AddComplaint() {
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=18&addressdetails=1`,
       { 
         headers: { "Accept-Language": "en" },
-        // Add timeout to prevent hanging
         signal: AbortSignal.timeout(5000)
       }
     );
     
-    if (!res.ok) {
+    if (!res.ok) 
+    {
       throw new Error(`API returned ${res.status}`);
     }
     
     const data = await res.json();
 
-    // ── FIX 2: Get MORE precise address details ──
+    console.log("Clicked Location:", data);
     const address = data.address || {};
     
     // Try to get the most specific location first
-    const houseNumber = address.house_number || "";
+    const amenity = address.amenity || "";
     const road = address.road || address.street || "";
-    const suburb = address.suburb || address.village || address.town || address.city_district || "";
+    // const suburb = address.suburb || address.village || address.town || address.city_district || "";
     const city = address.city || address.town || address.village || "";
-    const district = address.county || address.state_district || "";
     const state = address.state || "";
-    const postcode = address.postcode || "";
 
     // ── FIX 3: Build a more precise address string ──
     let locationParts = [];
     
     // Build from most specific to least specific
-    if (houseNumber) locationParts.push(houseNumber);
-    if (road) locationParts.push(road);
-    if (suburb) locationParts.push(suburb);
-    if (city) locationParts.push(city);
-    if (district) locationParts.push(district);
-    if (state) locationParts.push(state);
+    // if (houseNumber) 
+    //   locationParts.push(houseNumber);
+    if (amenity) 
+      locationParts.push(amenity);
+    if (road) 
+      locationParts.push(road);
+    if (city) 
+       locationParts.push(city);
+    if (state) 
+      locationParts.push(state);
     
     // Remove duplicates and empty values
     const uniqueParts = [...new Set(locationParts.filter(Boolean))];
@@ -225,7 +231,7 @@ function AddComplaint() {
     
     setSelectedLocation(posObj);
     setMapCoordinates(posObj);
-    setForm((f) => ({ ...f, location: locationStr }));
+    setForm((f) => ({ ...f, location: locationStr, latitude: posObj.exactLat, longitude: posObj.exactLng }));
     
     // ── FIX 5: Update the marker position ──
     if (mapInstanceRef.current) {
@@ -253,13 +259,16 @@ function AddComplaint() {
     
     showToast(`📍 Location selected: ${locationStr}`, "success");
 
-  } catch (error) {
+  } 
+  catch (error) 
+  {
     console.error("Map click error:", error);
-    
-    // ── FIX 6: Fallback - show coordinates even if address fails ──
-    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+    if (error.name === 'AbortError' || error.message.includes('timeout')) 
+    {
       showToast("Address lookup timed out. Using coordinates.", "error");
-    } else {
+    } 
+    else 
+    {
       showToast("Could not fetch address. Please try again.", "error");
     }
     
@@ -277,6 +286,7 @@ function AddComplaint() {
 // ── NEW: Handle marker drag end ──
 const handleMarkerDragEnd = async function() {
   const pos = this.getLatLng();
+
   const { lat, lng } = pos;
 
   try {
@@ -285,21 +295,21 @@ const handleMarkerDragEnd = async function() {
       { headers: { "Accept-Language": "en" } }
     );
     const data = await res.json();
+    console.log("Marked Location:",data);
     
     const address = data.address || {};
-    const houseNumber = address.house_number || "";
+    const amenity = address.amenity || "";
     const road = address.road || address.street || "";
-    const suburb = address.suburb || address.village || address.town || "";
+    // const suburb = address.suburb || address.village || address.town || "";
     const city = address.city || address.town || "";
     const state = address.state || "";
-    
-    const locationParts = [houseNumber, road, suburb, city, state].filter(Boolean);
+    const locationParts = [amenity, road, city, state].filter(Boolean);
     const locationStr = locationParts.join(", ");
 
     const posObj = { lat, lng };
     setSelectedLocation(posObj);
     setMapCoordinates(posObj);
-    setForm((f) => ({ ...f, location: locationStr }));
+    setForm((f) => ({ ...f, location: locationStr , latitude: lat, longitude: lng}));
     showToast("📍 Location updated from marker!", "success");
 
   } catch (error) {
@@ -320,8 +330,10 @@ const handleMarkerDragEnd = async function() {
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`
       );
       const data = await res.json();
+      console.log(data);
 
-      if (data.length > 0) {
+      if (data.length > 0) 
+      {
         const { lat, lon, display_name } = data[0];
         const posObj = { lat: parseFloat(lat), lng: parseFloat(lon) };
 
@@ -446,8 +458,8 @@ const handleMarkerDragEnd = async function() {
     formData.append("wardNo", form.wardNo);
     formData.append("location", form.location);
     formData.append("description", form.description);
-    formData.append("latitude", selectedLocation?.lat || null);
-    formData.append("longitude", selectedLocation?.lng || null);
+    formData.append("latitude", form.latitude || null);
+    formData.append("longitude", form.longitude || null);
 
     if (images.length > 0) {
       formData.append("image", images[0].file);
@@ -457,7 +469,7 @@ const handleMarkerDragEnd = async function() {
     try {
       const uploadComplaint = await api.post(`/api/auth/addComplaint`, formData);
       showToast("Complaint submitted successfully! ✓", "success");
-      setForm({ category: "", title: "", wardNo: "", location: "", description: "" });
+      setForm({ category: "", title: "", wardNo: "", location: "", description: "" , latitude:"", longitude:""});
       setImages([]);
       setShowMap(false);
       setSelectedLocation(null);
