@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Network,
   BadgeCheck,
-  Loader2,
+  Phone,
   AlertCircle,
 } from "lucide-react";
 
@@ -127,7 +127,6 @@ function Members() {
   { label: "Inactive",filter: 'inactive' },
 ];
   // ── Dynamic Stats ──
-  const activeCount = tableMembers.filter(m => Boolean(m.is_online) === true).length;
   const totalReported = tableMembers.reduce((sum, m) => sum + (m.reported || 0), 0);
   const totalResolved = tableMembers.reduce((sum, m) => sum + (m.resolved || 0), 0);
 
@@ -142,7 +141,6 @@ function Members() {
 
   return (
     <div className={styles.pageWrapper}>
-      
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
@@ -253,7 +251,7 @@ function Members() {
             <p className={styles.adminRole}>{adminInfo.role}</p>
             <div className={styles.adminContact}>
               <span>✉ {adminInfo.email}</span>
-              <span>📞 {adminInfo.phone}</span>
+              <span style={{display: "flex", alignItems: "center", justifyContent:"center",gap:"5px"}}><Phone strokeWidth={3}/> {adminInfo.phone}</span>
             </div>
             <button className={styles.viewProfileBtn}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">

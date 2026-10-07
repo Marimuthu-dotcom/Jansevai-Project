@@ -24,12 +24,14 @@
   height: 100%;
   flex: 1;                    /* sidebar width மாறும்போது auto expand */
   transition: all 0.3s ease; /* smooth expand/shrink */
-  overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%; /* Add this */
+  box-sizing: border-box; /* Add this */
 }
 
 /* ── Sidebar ── */
 .sideBar {
-  width: 300px;               /* உன் original width */
+  width: 230px;               /* உன் original width */
   min-height: 100vh;
   background-color: white;
   display: flex;
@@ -39,13 +41,13 @@
   top: 0;
   max-height: 111vh;
   flex-shrink: 0;
-  transition: width 0.3s ease;
+  transition: width 0.5s ease-in;
   overflow: hidden;           /* text slide hide */
 }
 
 /* Sidebar Closed — icons only */
 .sideBarClosed {
-  width: 62px;
+  width: 60px;
 }
 
 /* Toggle Button — sidebar right edge-ல */

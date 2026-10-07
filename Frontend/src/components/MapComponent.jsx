@@ -26,7 +26,7 @@ const MapComponent = ({ latitude, longitude, locationName }) => {
       // Add tile layer (OpenStreetMap)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 18,
+        maxZoom: 19,
       }).addTo(mapInstanceRef.current);
 
       // Add marker
@@ -35,15 +35,19 @@ const MapComponent = ({ latitude, longitude, locationName }) => {
         .bindPopup(locationName || 'Complaint Location')
         .openPopup();
     } 
-    else {
+    else 
+    {
       // Update existing map position
       mapInstanceRef.current.setView([latitude, longitude], 15);
       
       // Update marker position
-      if (markerRef.current) {
+      if (markerRef.current) 
+      {
         markerRef.current.setLatLng([latitude, longitude]);
         markerRef.current.bindPopup(locationName || 'Complaint Location');
-      } else {
+      } 
+      else 
+      {
         markerRef.current = L.marker([latitude, longitude])
           .addTo(mapInstanceRef.current)
           .bindPopup(locationName || 'Complaint Location')
@@ -52,7 +56,7 @@ const MapComponent = ({ latitude, longitude, locationName }) => {
     }
 
     // Disable dragging to prevent changing location
-    mapInstanceRef.current.dragging.disable();
+    mapInstanceRef.current.dragging.enable();
     mapInstanceRef.current.touchZoom.disable();
     mapInstanceRef.current.doubleClickZoom.disable();
     mapInstanceRef.current.scrollWheelZoom.enable(); // Allow scrolling
@@ -60,7 +64,8 @@ const MapComponent = ({ latitude, longitude, locationName }) => {
 
     // Cleanup on unmount
     return () => {
-      if (mapInstanceRef.current) {
+      if (mapInstanceRef.current) 
+      {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         markerRef.current = null;

@@ -13,8 +13,8 @@ import NotificationPage from "./pages/NotificationPage";
 import InviteMember from "./pages/InviteMember";
 import RecentComplaints from "./pages/RecentComplaints";
 import AddGroups from "./pages/AddGroups";
-
 import { Navigate } from "react-router-dom";
+
 function App() {
 
   return (

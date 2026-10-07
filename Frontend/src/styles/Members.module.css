@@ -1,24 +1,19 @@
-.memberContainer{
+ .memberContainer{
     display: flex;
     flex-direction: column;
     padding: 10px;
-    font-family:'Inter',sans-serif;;
+    font-family:'Inter',sans-serif;
 }
 .mainContainer {
   background-color: white;
-  min-height: 100vh;
   padding: 7px;
   font-family: 'Segoe UI', sans-serif;
-  min-height: 108vh;
-}
+} 
 
-/* ── Page Header ── */
-/* ── Page Wrapper ── */
 .pageWrapper {
-  padding: 24px 28px;
-  font-family: 'Inter',sans-serif;;
-  background-color: #f8f9fb;
-  min-height: 100vh;
+  padding: 24px 18px 24px 28px;
+  font-family: 'Inter',sans-serif;
+  background-color: white;
 }
 
 /* ── Header ── */
@@ -976,6 +971,103 @@
   .adminCard, .overviewCard, .actionsCard, .promoCard {
     flex: 1;
     min-width: 260px;
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .leftPanel {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .adminCard, .overviewCard {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageWrapper { 
+    padding: 12px 16px; 
+  }
+  
+  .statsRow { 
+    flex-direction: column; 
+  }
+  
+  .statCard {
+    min-width: unset;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .headerRight {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .tableHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .tableActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .searchBox input {
+    width: 100px;
+  }
+  
+  .districtBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .wardCard, .ungroupedCard {
+    min-width: 140px;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageWrapper { 
+    padding: 8px 10px; 
+  }
+  
+  .membersTable thead th {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+  
+  .membersTable tbody td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  
+  .memberCell {
+    gap: 8px;
+  }
+  
+  .avatarCircle {
+    width: 30px;
+    height: 30px;
+    font-size: 10px;
   }
 }
 
